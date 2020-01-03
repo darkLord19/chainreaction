@@ -21,6 +21,7 @@ func CreateNewGame(c *gin.Context) {
 	if gameInstance.PlayersCount == 0 {
 		gameInstance.PlayersCount = 2
 	}
+	addGameInstance(gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
 }
 
