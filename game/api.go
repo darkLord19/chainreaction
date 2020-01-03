@@ -27,11 +27,11 @@ func CreateNewGame(c *gin.Context) {
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
-	instance, exists := c.Get("instance-id")
-	if !exists {
+	instanceID := c.Query("instance_id")
+	if instanceID == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
 	}
-	gInstance, exists := getGameInstance(instance.(string))
+	gInstance, exists := getGameInstance(instanceID)
 	if !exists {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": "No such active game instance found"})
 	}
