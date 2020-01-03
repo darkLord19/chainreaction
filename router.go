@@ -8,5 +8,6 @@ import (
 func main() {
 	route := gin.Default()
 	route.GET("/new", game.CreateNewGame)
+	route.GET("/join", game.JoinExistingGame)
 	route.Run()
 }
