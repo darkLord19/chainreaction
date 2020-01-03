@@ -18,8 +18,8 @@ func CreateNewGame(c *gin.Context) {
 	gameInstance.ExpiresOn = gameInstance.CreatedOn.Add(time.Minute * time.Duration(25))
 	gameInstance.CurrentTurn = 0
 	gameInstance.InstanceID = uuid.NewV4().String()
-	if gameInstance.PlayersCount == 0 {
-		gameInstance.PlayersCount = 2
+	if gameInstance.PlayersCount < 2 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 	}
 	addGameInstance(gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
@@ -35,5 +35,9 @@ func JoinExistingGame(c *gin.Context) {
 	if !exists {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": "No such active game instance found"})
 	}
+	if gInstance.CurrentActivePlayers == gInstance.PlayersCount {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
+	}
+	gInstance.CurrentActivePlayers++
 	c.JSON(http.StatusOK, gin.H{"Game Instance": gInstance})
 }
