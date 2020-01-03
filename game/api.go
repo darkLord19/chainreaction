@@ -33,7 +33,7 @@ func JoinExistingGame(c *gin.Context) {
 	}
 	gInstance, exists := getGameInstance(instance.(string))
 	if !exists {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": "No such game instance found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": "No such active game instance found"})
 	}
 	c.JSON(http.StatusOK, gin.H{"Game Instance": gInstance})
 }
