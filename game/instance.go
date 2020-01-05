@@ -64,3 +64,13 @@ func (i *Instance) BroadcastMoves() {
 		}
 	}
 }
+
+// CheckIfColorSelected checks if given color is already selected by another player
+func (i *Instance) CheckIfColorSelected(color string) bool {
+	for _, p := range i.AllPlayers {
+		if p.Color == color {
+			return true
+		}
+	}
+	return false
+}

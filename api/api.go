@@ -52,7 +52,12 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
 		return
 	}
-	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), "green", ws})
+	color := c.Query("color")
+	if gInstance.CheckIfColorSelected(color) {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Color " + color + " is already selected by someone else"})
+		return
+	}
+	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), color, ws})
 	gInstance.CurrentActivePlayers++
 
 	go gInstance.BroadcastMoves()
