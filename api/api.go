@@ -1,11 +1,13 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/game"
+	"github.com/chainreaction/utils"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 )
@@ -24,13 +26,17 @@ func CreateNewGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 		return
 	}
-	gameInstance.AllPlayers[0] = game.Player{uuid.NewV4().String(), "blue"}
 	datastore.AddGameInstance(gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
 }
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
+	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ws.Close()
 	instanceID := c.Query("instance_id")
 	if instanceID == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
@@ -45,7 +51,17 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
 		return
 	}
+	gInstance.AllPlayers[gInstance.CurrentActivePlayers] = game.Player{uuid.NewV4().String(), "green", ws}
 	gInstance.CurrentActivePlayers++
-	gInstance.AllPlayers[1] = game.Player{uuid.NewV4().String(), "green"}
-	c.JSON(http.StatusOK, gin.H{"Game Instance": gInstance})
+
+	for {
+		var move game.Move
+		err := ws.ReadJSON(&move)
+		if err != nil {
+			log.Printf("error: %v", err)
+			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
+			break
+		}
+		gInstance.Broadcast <- move
+	}
 }

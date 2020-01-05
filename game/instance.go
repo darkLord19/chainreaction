@@ -1,6 +1,10 @@
 package game
 
-import "time"
+import (
+	"time"
+
+	"github.com/gorilla/websocket"
+)
 
 // Pixel represents current state of one pixel on board
 type Pixel struct {
@@ -18,10 +22,18 @@ type Instance struct {
 	CurrentActivePlayers int
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
+	Broadcast            chan Move
 }
 
 // Player represents a single player
 type Player struct {
-	PlayerID string
-	Color    string
+	PlayerID     string
+	Color        string
+	WsConnection *websocket.Conn
+}
+
+type Move struct {
+	XPos     int    `json:"xpos"`
+	YPos     int    `json:"ypos"`
+	PlayerID string `player_id:"player_id"`
 }
