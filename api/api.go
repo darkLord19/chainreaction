@@ -26,6 +26,7 @@ func CreateNewGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 		return
 	}
+	gameInstance.InitBrodcast()
 	datastore.AddGameInstance(gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
 }
@@ -62,6 +63,6 @@ func JoinExistingGame(c *gin.Context) {
 			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
 			break
 		}
-		gInstance.Broadcast <- move
+		gInstance.GetBroadcast() <- move
 	}
 }

@@ -22,7 +22,7 @@ type Instance struct {
 	CurrentActivePlayers int
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
-	Broadcast            chan Move
+	broadcast            chan Move
 }
 
 // Player represents a single player
@@ -32,8 +32,19 @@ type Player struct {
 	WsConnection *websocket.Conn
 }
 
+// Move struct is used to get Move messages from websocket client
 type Move struct {
 	XPos     int    `json:"xpos"`
 	YPos     int    `json:"ypos"`
 	PlayerID string `player_id:"player_id"`
+}
+
+// InitBroadcast initializes brodcast channel
+func (i *Instance) InitBroadcast() {
+	i.broadcast = make(chan Move)
+}
+
+// GetBroadcast return brodcast channel
+func (i *Instance) GetBroadcast() *chan Move {
+	return &i.broadcast
 }
