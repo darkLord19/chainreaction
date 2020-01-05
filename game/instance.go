@@ -15,7 +15,7 @@ type Pixel struct {
 
 // Instance represents a single game instance
 type Instance struct {
-	Board                [32][32]Pixel
+	Board                [][]Pixel
 	PlayersCount         int `json:"players_count" form:"players_count"`
 	CurrentTurn          int `json:"current_turn"`
 	AllPlayers           []Player
