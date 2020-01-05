@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -66,7 +65,6 @@ func JoinExistingGame(c *gin.Context) {
 			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
 			break
 		}
-		fmt.Println("Hello World")
 		gInstance.GetBroadcast() <- move
 	}
 }
