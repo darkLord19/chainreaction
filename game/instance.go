@@ -1,6 +1,7 @@
 package game
 
 import (
+	"log"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -17,7 +18,7 @@ type Instance struct {
 	Board                [32][32]Pixel
 	PlayersCount         int `json:"players_count" form:"players_count"`
 	CurrentTurn          int `json:"current_turn"`
-	AllPlayers           [2]Player
+	AllPlayers           []Player
 	InstanceID           string
 	CurrentActivePlayers int
 	CreatedOn            time.Time
@@ -45,6 +46,21 @@ func (i *Instance) InitBroadcast() {
 }
 
 // GetBroadcast return brodcast channel
-func (i *Instance) GetBroadcast() *chan Move {
-	return &i.broadcast
+func (i *Instance) GetBroadcast() chan Move {
+	return i.broadcast
+}
+
+// BroadcastMoves brodcasts move to all players
+func (i *Instance) BroadcastMoves() {
+	for {
+		move := <-i.broadcast
+		for _, p := range i.AllPlayers {
+			err := p.WsConnection.WriteJSON(move)
+			if err != nil {
+				log.Printf("error: %v", err)
+				p.WsConnection.Close()
+				p.WsConnection = nil
+			}
+		}
+	}
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -27,7 +28,7 @@ func CreateNewGame(c *gin.Context) {
 		return
 	}
 	gameInstance.InitBroadcast()
-	datastore.AddGameInstance(gameInstance)
+	datastore.AddGameInstance(&gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
 }
 
@@ -52,8 +53,10 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
 		return
 	}
-	gInstance.AllPlayers[gInstance.CurrentActivePlayers] = game.Player{uuid.NewV4().String(), "green", ws}
+	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), "green", ws})
 	gInstance.CurrentActivePlayers++
+
+	go gInstance.BroadcastMoves()
 
 	for {
 		var move game.Move
@@ -63,6 +66,7 @@ func JoinExistingGame(c *gin.Context) {
 			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
 			break
 		}
-		*gInstance.GetBroadcast() <- move
+		fmt.Println("Hello World")
+		gInstance.GetBroadcast() <- move
 	}
 }
