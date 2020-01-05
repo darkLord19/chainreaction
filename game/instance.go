@@ -13,8 +13,15 @@ type Instance struct {
 	Board                [32][32]Pixel
 	PlayersCount         int `json:"players_count" form:"players_count"`
 	CurrentTurn          int `json:"current_turn"`
+	AllPlayers           [2]Player
 	InstanceID           string
 	CurrentActivePlayers int
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
+}
+
+// Player represents a single player
+type Player struct {
+	PlayerID string
+	Color    string
 }

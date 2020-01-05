@@ -24,6 +24,7 @@ func CreateNewGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 		return
 	}
+	gameInstance.AllPlayers[0] = game.Player{uuid.NewV4().String(), "blue"}
 	datastore.AddGameInstance(gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
 }
@@ -45,5 +46,6 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 	gInstance.CurrentActivePlayers++
+	gInstance.AllPlayers[1] = game.Player{uuid.NewV4().String(), "green"}
 	c.JSON(http.StatusOK, gin.H{"Game Instance": gInstance})
 }
