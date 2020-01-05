@@ -1,16 +1,18 @@
-package game
+package api
 
 import (
 	"net/http"
 	"time"
 
+	"github.com/chainreaction/datastore"
+	"github.com/chainreaction/game"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 )
 
 // CreateNewGame provides endpoint to create a new game instance
 func CreateNewGame(c *gin.Context) {
-	var gameInstance Instance
+	var gameInstance game.Instance
 	if c.ShouldBindQuery(&gameInstance) != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, "Bad request")
 	}
@@ -21,7 +23,7 @@ func CreateNewGame(c *gin.Context) {
 	if gameInstance.PlayersCount < 2 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 	}
-	addGameInstance(gameInstance)
+	datastore.AddGameInstance(gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
 }
 
@@ -31,7 +33,7 @@ func JoinExistingGame(c *gin.Context) {
 	if instanceID == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
 	}
-	gInstance, exists := getGameInstance(instanceID)
+	gInstance, exists := datastore.GetGameInstance(instanceID)
 	if !exists {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": "No such active game instance found"})
 	}

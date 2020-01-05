@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/chainreaction/game"
+	"github.com/chainreaction/api"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	route := gin.Default()
-	route.GET("/new", game.CreateNewGame)
-	route.GET("/join", game.JoinExistingGame)
+	route.GET("/new", api.CreateNewGame)
+	route.GET("/join", api.JoinExistingGame)
 	route.Run()
 }
