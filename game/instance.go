@@ -37,7 +37,7 @@ type Player struct {
 type Move struct {
 	XPos     int    `json:"xpos"`
 	YPos     int    `json:"ypos"`
-	PlayerID string `player_id:"player_id"`
+	PlayerID string `json:"player_id"`
 }
 
 // InitBroadcast initializes brodcast channel
