@@ -15,10 +15,10 @@ type Queue struct {
 }
 
 // NewQueue creates a new Queue
-func NewQueue() Queue {
+func NewQueue() *Queue {
 	s := Queue{}
 	s.items = []Pair{}
-	return s
+	return &s
 }
 
 // Enqueue adds an Item to the end of the queue
