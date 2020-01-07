@@ -83,6 +83,6 @@ func JoinExistingGame(c *gin.Context) {
 			break
 		}
 		gInstance.GetBroadcast() <- move
-		simulate.ChainReaction(&gInstance, move.XPos, move.YPos)
+		simulate.ChainReaction(gInstance, move.XPos, move.YPos)
 	}
 }
