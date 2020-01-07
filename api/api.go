@@ -58,6 +58,10 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 	color := c.Query("color")
+	if color == "" {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
+		return
+	}
 	if gInstance.CheckIfColorSelected(color) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Color " + color + " is already selected by someone else"})
 		return
