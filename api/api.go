@@ -28,6 +28,10 @@ func CreateNewGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 		return
 	}
+	if gameInstance.Dimension == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Provide valid dimension value"})
+		return
+	}
 	gameInstance.Board = make([][]game.Pixel, gameInstance.Dimension)
 	for i := 0; i < gameInstance.Dimension; i++ {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
@@ -39,11 +43,6 @@ func CreateNewGame(c *gin.Context) {
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
-	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer ws.Close()
 	instanceID := c.Query("instance_id")
 	if instanceID == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
@@ -63,6 +62,13 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Color " + color + " is already selected by someone else"})
 		return
 	}
+
+	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ws.Close()
+
 	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), color, ws})
 	gInstance.CurrentActivePlayers++
 
