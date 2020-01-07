@@ -7,11 +7,9 @@ import (
 	"github.com/chainreaction/utils"
 )
 
-func updateBoard(board *[][]game.Pixel, x int, y int) {
+func updateBoard(board *[][]game.Pixel, x int, y int, color string) {
 	q := utils.NewQueue()
 	q.Enqueue(utils.Pair{x, y})
-
-	color := (*board)[x][y].Color
 
 	m := len(*board)
 	n := len((*board)[0])
@@ -69,14 +67,16 @@ func updatePixelState(board *[][]game.Pixel, x int, y int, color string) {
 }
 
 // ChainReaction is called after each move and spreads the orbs on the board
-func ChainReaction(gameInstance *game.Instance, x int, y int) error {
+func ChainReaction(gameInstance *game.Instance, move game.Move) error {
 	board := gameInstance.Board
+
+	x, y := move.XPos, move.YPos
 
 	if x < 0 && y < 0 && x > gameInstance.Dimension && y > gameInstance.Dimension {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 
-	updateBoard(&board, x, y)
+	updateBoard(&board, x, y, gameInstance.AllPlayers[move.PlayerID].Color)
 
 	return nil
 }
