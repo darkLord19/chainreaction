@@ -21,7 +21,7 @@ type Instance struct {
 	AllPlayers           []Player
 	InstanceID           string
 	CurrentActivePlayers int
-	Dimension            int `json:"dimension"`
+	Dimension            int `json:"dimension" form:"dimension"`
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
 	broadcast            chan Move
