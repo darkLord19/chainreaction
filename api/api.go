@@ -36,7 +36,6 @@ func CreateNewGame(c *gin.Context) {
 	for i := 0; i < gameInstance.Dimension; i++ {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
-	gameInstance.AllPlayers = make(map[string]game.Player)
 	gameInstance.InitBroadcast()
 	datastore.AddGameInstance(&gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
@@ -74,7 +73,7 @@ func JoinExistingGame(c *gin.Context) {
 	}
 	defer ws.Close()
 
-	gInstance.AllPlayers[uuid.NewV4().String()] = game.Player{uuid.NewV4().String(), color, ws}
+	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), color, ws})
 	gInstance.CurrentActivePlayers++
 
 	go gInstance.BroadcastMoves()
