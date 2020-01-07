@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/chainreaction/simulate"
+
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/game"
 	"github.com/chainreaction/utils"
@@ -81,5 +83,6 @@ func JoinExistingGame(c *gin.Context) {
 			break
 		}
 		gInstance.GetBroadcast() <- move
+		simulate.ChainReaction(&gInstance, move.XPos, move.YPos)
 	}
 }
