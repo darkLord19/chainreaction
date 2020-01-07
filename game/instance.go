@@ -18,7 +18,7 @@ type Instance struct {
 	Board                [][]Pixel
 	PlayersCount         int `json:"players_count" form:"players_count"`
 	CurrentTurn          int `json:"current_turn"`
-	AllPlayers           []Player
+	AllPlayers           map[string]Player
 	InstanceID           string
 	CurrentActivePlayers int
 	Dimension            int `json:"dimension" form:"dimension"`
