@@ -15,7 +15,8 @@ type Queue struct {
 }
 
 // NewQueue creates a new Queue
-func (s *Queue) NewQueue() *Queue {
+func NewQueue() Queue {
+	s := Queue{}
 	s.items = []Pair{}
 	return s
 }
