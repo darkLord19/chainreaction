@@ -75,3 +75,13 @@ func (i *Instance) CheckIfColorSelected(color string) bool {
 	}
 	return false
 }
+
+// GetPlayerByID returns Player struct from instance id
+func (i *Instance) GetPlayerByID(id string) *Player {
+	for _, p := range i.AllPlayers {
+		if p.PlayerID == id {
+			return &p
+		}
+	}
+	return nil
+}
