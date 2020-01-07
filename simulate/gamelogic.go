@@ -72,7 +72,7 @@ func updatePixelState(board *[][]game.Pixel, x int, y int, color string) {
 func ChainReaction(gameInstance *game.Instance, x int, y int) error {
 	board := gameInstance.Board
 
-	if x < 0 && y < 0 && x > 31 && y > 31 {
+	if x < 0 && y < 0 && x > gameInstance.Dimension && y > gameInstance.Dimension {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 

@@ -3,7 +3,6 @@ package api
 import (
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/chainreaction/simulate"
@@ -29,14 +28,9 @@ func CreateNewGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 		return
 	}
-	dim, err := strconv.Atoi(c.Query("dimen"))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Provide valid dimension value"})
-		return
-	}
-	gameInstance.Board = make([][]game.Pixel, dim)
-	for i := 0; i < dim; i++ {
-		gameInstance.Board[i] = make([]game.Pixel, dim)
+	gameInstance.Board = make([][]game.Pixel, gameInstance.Dimension)
+	for i := 0; i < gameInstance.Dimension; i++ {
+		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
 	gameInstance.InitBroadcast()
 	datastore.AddGameInstance(&gameInstance)
