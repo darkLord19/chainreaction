@@ -75,10 +75,14 @@ func JoinExistingGame(c *gin.Context) {
 
 	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), color, ws})
 	gInstance.CurrentActivePlayers++
+	gInstance.CurrentTurn = 0
 
 	go gInstance.BroadcastMoves()
 
 	for {
+		if gInstance.CurrentActivePlayers != gInstance.PlayersCount {
+			continue
+		}
 		var move game.Move
 		err := ws.ReadJSON(&move)
 		if err != nil {
@@ -86,7 +90,10 @@ func JoinExistingGame(c *gin.Context) {
 			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
 			break
 		}
-		gInstance.GetBroadcast() <- move
-		simulate.ChainReaction(gInstance, move)
+		if move.PlayerID == gInstance.AllPlayers[gInstance.CurrentTurn].PlayerID {
+			gInstance.GetBroadcast() <- move
+			simulate.ChainReaction(gInstance, move)
+			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
+		}
 	}
 }
