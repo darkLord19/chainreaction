@@ -29,8 +29,16 @@ This will generate binary named chainreaction in the directory which you can run
 
 # Future ideas
 1. Build a decent front end to play the game
-2. Plan a proper websocket messanging mechanism
+2. Plan a proper websocket messaging mechanism
 3. Refractor code to better fit golang model
 
 # Contribution guidelines
 - Anyone who is interested in contributing is welcome. There is no hard requirements. If you are making code better or implementing some new feature, you are most welcome to do so.
+- To start contributing follow these steps:
+  - Fork/clone this project
+  - Create a new feature branch in your fork/clone
+  - Push the code
+  - Give us a Pull request with all the details
+  - Once the Pull request is reviewed 
+  - We'll decide whether to merge it or ask for improvisations
+
