@@ -13,6 +13,7 @@ query params: instance-id (not-optional)
 
 
 # How to Build
+First you will need golang package installed for your respective OS. Refer golang homepage on HowTo.
 ```
 git clone https://github.com/darkLord19/ChainReaction
 cd ChainReaction
@@ -30,3 +31,6 @@ This will generate binary named chainreaction in the directory which you can run
 1. Build a decent front end to play the game
 2. Plan a proper websocket messanging mechanism
 3. Refractor code to better fit golang model
+
+# Contribution guidelines
+- Anyone who is interested in contributing is welcome. There is no hard requirements. If you are making code better or implementing some new feature, you are most welcome to do so.
