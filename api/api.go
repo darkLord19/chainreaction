@@ -1,15 +1,11 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"time"
 
-	"github.com/chainreaction/simulate"
-
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/game"
-	"github.com/chainreaction/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +17,7 @@ func CreateNewGame(c *gin.Context) {
 	}
 	gameInstance.CreatedOn = time.Now().UTC()
 	gameInstance.ExpiresOn = gameInstance.CreatedOn.Add(time.Minute * time.Duration(25))
-	gameInstance.CurrentTurn = ""
+	gameInstance.CurrentTurn = 0
 	gameInstance.RoomName = datastore.GetNewUniqueRoomName()
 	if gameInstance.PlayersCount < 2 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
@@ -42,7 +38,7 @@ func CreateNewGame(c *gin.Context) {
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
-	roomName := c.Query("instance_id")
+	roomName := c.Query("room_name")
 	if roomName == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
 		return
@@ -75,35 +71,6 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 
-	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer ws.Close()
-
 	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, ws})
 	gInstance.CurrentActivePlayers++
-
-	if gInstance.CurrentTurn == "" {
-		gInstance.CurrentTurn = username
-	}
-
-	go gInstance.BroadcastMoves()
-
-	for {
-		if gInstance.CurrentActivePlayers != gInstance.PlayersCount {
-			continue
-		}
-		var move game.Move
-		err := ws.ReadJSON(&move)
-		if err != nil {
-			log.Printf("error: %v", err)
-			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
-			break
-		}
-		if move.PlayerUserName == gInstance.CurrentTurn {
-			gInstance.GetBroadcast() <- move
-			simulate.ChainReaction(gInstance, move)
-		}
-	}
 }
