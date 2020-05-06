@@ -16,29 +16,29 @@ type Pixel struct {
 // Instance represents a single game instance
 type Instance struct {
 	Board                [][]Pixel
-	PlayersCount         int `json:"players_count" form:"players_count"`
-	CurrentTurn          int `json:"current_turn"`
+	PlayersCount         int    `json:"players_count" form:"players_count"`
+	CurrentTurn          string `json:"current_turn"`
 	AllPlayers           []Player
-	InstanceID           string
-	CurrentActivePlayers int
+	RoomName             string
 	Dimension            int `json:"dimension" form:"dimension"`
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
+	CurrentActivePlayers int
 	broadcast            chan Move
 }
 
 // Player represents a single player
 type Player struct {
-	PlayerID     string
+	UserName     string
 	Color        string
 	WsConnection *websocket.Conn
 }
 
 // Move struct is used to get Move messages from websocket client
 type Move struct {
-	XPos     int    `json:"xpos"`
-	YPos     int    `json:"ypos"`
-	PlayerID string `json:"player_id"`
+	XPos           int    `json:"xpos"`
+	YPos           int    `json:"ypos"`
+	PlayerUserName string `json:"player_username"`
 }
 
 // InitBroadcast initializes brodcast channel
@@ -77,11 +77,21 @@ func (i *Instance) CheckIfColorSelected(color string) bool {
 }
 
 // GetPlayerByID returns Player struct from instance id
-func (i *Instance) GetPlayerByID(id string) *Player {
+func (i *Instance) GetPlayerByID(username string) *Player {
 	for _, p := range i.AllPlayers {
-		if p.PlayerID == id {
+		if p.UserName == username {
 			return &p
 		}
 	}
 	return nil
+}
+
+// CheckIfUserNameClaimed checks if given username is claimed by another user or not
+func (i *Instance) CheckIfUserNameClaimed(username string) bool {
+	for _, p := range i.AllPlayers {
+		if p.UserName == username {
+			return true
+		}
+	}
+	return false
 }

@@ -1,6 +1,11 @@
 package datastore
 
-import "github.com/chainreaction/game"
+import (
+	"strings"
+
+	"github.com/Pallinder/go-randomdata"
+	"github.com/chainreaction/game"
+)
 
 var (
 	allGameInstances    map[string]*game.Instance
@@ -20,6 +25,15 @@ func GetGameInstance(iid string) (*game.Instance, bool) {
 
 // AddGameInstance adds game instance in a data store indexed by instance id
 func AddGameInstance(gameInstance *game.Instance) {
-	allGameInstances[gameInstance.InstanceID] = gameInstance
-	activeGameInstances[gameInstance.InstanceID] = gameInstance
+	allGameInstances[gameInstance.RoomName] = gameInstance
+	activeGameInstances[gameInstance.RoomName] = gameInstance
+}
+
+// GetNewUniqueRoomName returns new random unique name for game room
+func GetNewUniqueRoomName() string {
+	name := randomdata.SillyName()
+	for allGameInstances[name] != nil {
+		name = randomdata.SillyName()
+	}
+	return strings.ToLower(name)
 }

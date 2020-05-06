@@ -11,7 +11,6 @@ import (
 	"github.com/chainreaction/game"
 	"github.com/chainreaction/utils"
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 )
 
 // CreateNewGame provides endpoint to create a new game instance
@@ -22,8 +21,8 @@ func CreateNewGame(c *gin.Context) {
 	}
 	gameInstance.CreatedOn = time.Now().UTC()
 	gameInstance.ExpiresOn = gameInstance.CreatedOn.Add(time.Minute * time.Duration(25))
-	gameInstance.CurrentTurn = 0
-	gameInstance.InstanceID = uuid.NewV4().String()
+	gameInstance.CurrentTurn = ""
+	gameInstance.RoomName = datastore.GetNewUniqueRoomName()
 	if gameInstance.PlayersCount < 2 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "At least two players needed"})
 		return
@@ -38,17 +37,17 @@ func CreateNewGame(c *gin.Context) {
 	}
 	gameInstance.InitBroadcast()
 	datastore.AddGameInstance(&gameInstance)
-	c.JSON(http.StatusCreated, gin.H{"Game Instance": gameInstance})
+	c.JSON(http.StatusCreated, gin.H{"GameRoomName": gameInstance.RoomName})
 }
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
-	instanceID := c.Query("instance_id")
-	if instanceID == "" {
+	roomName := c.Query("instance_id")
+	if roomName == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
 		return
 	}
-	gInstance, exists := datastore.GetGameInstance(instanceID)
+	gInstance, exists := datastore.GetGameInstance(roomName)
 	if !exists {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"Error": "No such active game instance found"})
 		return
@@ -57,13 +56,22 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
 		return
 	}
+	username := c.Query("username")
+	if username == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "username cannot be empty."})
+		return
+	}
+	if gInstance.CheckIfUserNameClaimed(username) {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Username `" + username + "` is already selected by someone else"})
+		return
+	}
 	color := c.Query("color")
 	if color == "" {
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Game is already full."})
 		return
 	}
 	if gInstance.CheckIfColorSelected(color) {
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Color " + color + " is already selected by someone else"})
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Color `" + color + "` is already selected by someone else"})
 		return
 	}
 
@@ -73,9 +81,12 @@ func JoinExistingGame(c *gin.Context) {
 	}
 	defer ws.Close()
 
-	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{uuid.NewV4().String(), color, ws})
+	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, ws})
 	gInstance.CurrentActivePlayers++
-	gInstance.CurrentTurn = 0
+
+	if gInstance.CurrentTurn == "" {
+		gInstance.CurrentTurn = username
+	}
 
 	go gInstance.BroadcastMoves()
 
@@ -90,10 +101,9 @@ func JoinExistingGame(c *gin.Context) {
 			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
 			break
 		}
-		if move.PlayerID == gInstance.AllPlayers[gInstance.CurrentTurn].PlayerID {
+		if move.PlayerUserName == gInstance.CurrentTurn {
 			gInstance.GetBroadcast() <- move
 			simulate.ChainReaction(gInstance, move)
-			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
 		}
 	}
 }

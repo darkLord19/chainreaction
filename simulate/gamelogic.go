@@ -79,7 +79,7 @@ func ChainReaction(gameInstance *game.Instance, move game.Move) error {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 
-	updateBoard(&board, x, y, gameInstance.GetPlayerByID(move.PlayerID).Color)
+	updateBoard(&board, x, y, gameInstance.GetPlayerByID(move.PlayerUserName).Color)
 
 	return nil
 }
