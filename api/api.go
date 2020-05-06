@@ -35,7 +35,7 @@ func CreateNewGame(c *gin.Context) {
 	for i := 0; i < gameInstance.Dimension; i++ {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
-	gameInstance.InitBroadcast()
+	gameInstance.InitBroadcasts()
 	datastore.AddGameInstance(&gameInstance)
 	c.JSON(http.StatusCreated, gin.H{"GameRoomName": gameInstance.RoomName})
 }
@@ -128,7 +128,8 @@ func StartGamePlay(c *gin.Context) {
 
 	player.WsConnection = ws
 
-	go gInstance.BroadcastMoves()
+	go gInstance.BroadcastMoveMoves()
+	go gInstance.BroadcastBoardUpdates()
 
 	for {
 		if gInstance.CurrentActivePlayers != gInstance.PlayersCount {
@@ -142,7 +143,7 @@ func StartGamePlay(c *gin.Context) {
 			break
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
-			gInstance.GetBroadcast() <- move
+			gInstance.GetbroadcastMove() <- move
 			simulate.ChainReaction(gInstance, move)
 		}
 	}

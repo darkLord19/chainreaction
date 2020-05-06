@@ -24,7 +24,9 @@ type Instance struct {
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
 	CurrentActivePlayers int
-	broadcast            chan Move
+	broadcastMove        chan Move
+	broadcastBoardFlag   bool
+	broadcastBoard       chan [][]Pixel
 }
 
 // Player represents a single player
@@ -41,20 +43,21 @@ type Move struct {
 	PlayerUserName string `json:"player_username"`
 }
 
-// InitBroadcast initializes brodcast channel
-func (i *Instance) InitBroadcast() {
-	i.broadcast = make(chan Move)
+// InitBroadcasts initializes brodcast channel
+func (i *Instance) InitBroadcasts() {
+	i.broadcastMove = make(chan Move)
+	i.broadcastBoard = make(chan [][]Pixel)
 }
 
-// GetBroadcast return brodcast channel
-func (i *Instance) GetBroadcast() chan Move {
-	return i.broadcast
+// GetbroadcastMove return brodcast channel
+func (i *Instance) GetbroadcastMove() chan Move {
+	return i.broadcastMove
 }
 
-// BroadcastMoves brodcasts move to all players
-func (i *Instance) BroadcastMoves() {
+// BroadcastMoveMoves brodcasts move to all players
+func (i *Instance) BroadcastMoveMoves() {
 	for {
-		move := <-i.broadcast
+		move := <-i.broadcastMove
 		for _, p := range i.AllPlayers {
 			err := p.WsConnection.WriteJSON(move)
 			if err != nil {
@@ -64,6 +67,28 @@ func (i *Instance) BroadcastMoves() {
 			}
 		}
 	}
+}
+
+// BroadcastBoardUpdates broadcasts board updates to users
+func (i *Instance) BroadcastBoardUpdates() {
+	for {
+		if i.broadcastBoardFlag {
+			for _, p := range i.AllPlayers {
+				err := p.WsConnection.WriteJSON(i.Board)
+				if err != nil {
+					log.Printf("error: %v", err)
+					p.WsConnection.Close()
+					p.WsConnection = nil
+				}
+			}
+			i.broadcastBoardFlag = false
+		}
+	}
+}
+
+// SetBroadcastBoardFlag sets broadcast board state flag
+func (i *Instance) SetBroadcastBoardFlag() {
+	i.broadcastBoardFlag = true
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
