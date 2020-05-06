@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/go-gin/gin"
 	"github.com/gorilla/websocket"
 )
 
@@ -59,7 +60,7 @@ func (i *Instance) BroadcastMoveMoves() {
 	for {
 		move := <-i.broadcastMove
 		for _, p := range i.AllPlayers {
-			err := p.WsConnection.WriteJSON(move)
+			err := p.WsConnection.WriteJSON(gin.H{"move": move})
 			if err != nil {
 				log.Printf("error: %v", err)
 				p.WsConnection.Close()
@@ -74,7 +75,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 	for {
 		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
-				err := p.WsConnection.WriteJSON(i.Board)
+				err := p.WsConnection.WriteJSON(gin.H{"board": i.Board})
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.WsConnection.Close()
