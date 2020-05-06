@@ -3,13 +3,13 @@ package api
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/game"
 	"github.com/chainreaction/simulate"
 	"github.com/chainreaction/utils"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,7 +42,7 @@ func CreateNewGame(c *gin.Context) {
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
-	roomName := c.Query("roomname")
+	roomName := strings.ToLower(c.Query("roomname"))
 	if roomName == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
 		return
@@ -56,7 +56,7 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"Error": "Game is already full."})
 		return
 	}
-	username := c.Query("username")
+	username := strings.ToLower(c.Query("username"))
 	if username == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "username cannot be empty."})
 		return
@@ -78,46 +78,44 @@ func JoinExistingGame(c *gin.Context) {
 	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, nil})
 	gInstance.CurrentActivePlayers++
 
-	session := sessions.Default(c)
-
-	session.Set("username", username)
-	session.Set("color", color)
-	session.Set("roomname", roomName)
-
-	session.Save()
-
-	c.JSON(200, gin.H{"Success": "You have joined the game mothafucka"})
+	c.JSON(200, gin.H{"Success": "You have joined the game mothafucka", "game instance": gInstance,
+		"user": gin.H{"username": username, "color": color}})
 }
 
 // StartGamePlay start websocket connection with clients for game play
 func StartGamePlay(c *gin.Context) {
-	session := sessions.Default(c)
-
-	if session.Get("username") == nil || session.Get("roomname") == nil || session.Get("color") == nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Cannot find required session info"})
+	roomname := c.Query("roomname")
+	if roomname == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
+		return
+	}
+	uname := strings.ToLower(c.Query("username"))
+	if uname == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "username cannot be empty."})
 		return
 	}
 
-	roomname := (session.Get("roomname")).(string)
-	uname := session.Get("username").(string)
+	gInstance, exists := datastore.GetGameInstance(roomname)
 
-	gInstance, exists := datastore.GetGameInstance(uname)
-
-	var player instance.Player
+	if gInstance.CurrentActivePlayers == gInstance.PlayersCount {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Game is already full."})
+		return
+	}
 
 	if !exists {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong room name"})
 		return
 	}
 
+	var player *game.Player
 	for _, p := range gInstance.AllPlayers {
 		if p.UserName == uname {
-			player = p
+			player = &p
 			break
 		}
 	}
 
-	if !player {
+	if player == nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "No such user exists in this game"})
 		return
 	}
