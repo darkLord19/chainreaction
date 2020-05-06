@@ -75,7 +75,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 	for {
 		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
-				err := p.WsConnection.WriteJSON(gin.H{"board": i.Board})
+				err := p.WsConnection.WriteJSON(gin.H{"board": i})
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.WsConnection.Close()
