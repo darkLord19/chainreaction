@@ -6,6 +6,7 @@ import (
 
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/game"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +39,7 @@ func CreateNewGame(c *gin.Context) {
 
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
-	roomName := c.Query("room_name")
+	roomName := c.Query("roomname")
 	if roomName == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Please provide a game instance id"})
 		return
@@ -71,6 +72,16 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 
-	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, ws})
+	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, nil})
 	gInstance.CurrentActivePlayers++
+
+	session := sessions.Default(c)
+
+	session.Set("username", username)
+	session.Set("color", color)
+	session.Set("roomname", roomName)
+
+	session.Save()
+
+	c.JSON(200, gin.H{"Success": "You have joined the game mothafucka"})
 }
