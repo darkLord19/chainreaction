@@ -13,5 +13,6 @@ func main() {
 	route.Use(sessions.Sessions("chainreaction", store))
 	route.GET("/new", api.CreateNewGame)
 	route.GET("/join", api.JoinExistingGame)
+	route.GET("/play", api.StartGamePlay)
 	route.Run()
 }

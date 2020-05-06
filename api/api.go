@@ -1,11 +1,14 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/game"
+	"github.com/chainreaction/simulate"
+	"github.com/chainreaction/utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -84,4 +87,66 @@ func JoinExistingGame(c *gin.Context) {
 	session.Save()
 
 	c.JSON(200, gin.H{"Success": "You have joined the game mothafucka"})
+}
+
+// StartGamePlay start websocket connection with clients for game play
+func StartGamePlay(c *gin.Context) {
+	session := sessions.Default(c)
+
+	if session.Get("username") == nil || session.Get("roomname") == nil || session.Get("color") == nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Cannot find required session info"})
+		return
+	}
+
+	roomname := (session.Get("roomname")).(string)
+	uname := session.Get("username").(string)
+
+	gInstance, exists := datastore.GetGameInstance(uname)
+
+	var player instance.Player
+
+	if !exists {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "Wrong room name"})
+		return
+	}
+
+	for _, p := range gInstance.AllPlayers {
+		if p.UserName == uname {
+			player = p
+			break
+		}
+	}
+
+	if !player {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": "No such user exists in this game"})
+		return
+	}
+
+	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ws.Close()
+
+	player.WsConnection = ws
+
+	go gInstance.BroadcastMoves()
+
+	for {
+		if gInstance.CurrentActivePlayers != gInstance.PlayersCount {
+			continue
+		}
+		var move game.Move
+		err := ws.ReadJSON(&move)
+		if err != nil {
+			log.Printf("error: %v", err)
+			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
+			break
+		}
+		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
+			gInstance.GetBroadcast() <- move
+			simulate.ChainReaction(gInstance, move)
+		}
+	}
+
 }
