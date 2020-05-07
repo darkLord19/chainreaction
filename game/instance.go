@@ -34,9 +34,9 @@ type Instance struct {
 	CurrentActivePlayers int
 	broadcastMove        chan Move
 	broadcastBoardFlag   bool
-	broadcastBoard       chan NewState
+	broadcastBoard       chan<- NewState
 	didWin               bool
-	broadcastWinner      chan Winner
+	broadcastWinner      chan<- Winner
 }
 
 // Player represents a single player
