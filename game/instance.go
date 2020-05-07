@@ -57,7 +57,7 @@ type Move struct {
 // NewState struct is used to represent board update for websocket broadcast
 type NewState struct {
 	MsgType     int       `json:"msg_type"`
-	NewCurrTurn int       `json:"new_currturn"`
+	NewCurrTurn string    `json:"new_currturn"`
 	NewBoard    [][]Pixel `json:"new_board"`
 }
 
@@ -99,7 +99,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 	for {
 		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
-				msg := NewState{stateUpBcastMsg, i.CurrentTurn, i.Board}
+				msg := NewState{stateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := p.WsConnection.WriteJSON(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
