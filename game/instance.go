@@ -103,9 +103,9 @@ func (i *Instance) CheckIfColorSelected(color string) bool {
 
 // GetPlayerByID returns Player struct from instance id
 func (i *Instance) GetPlayerByID(username string) *Player {
-	for _, p := range i.AllPlayers {
-		if p.UserName == username {
-			return &p
+	for a := range i.AllPlayers {
+		if i.AllPlayers[a].UserName == username {
+			return &i.AllPlayers[a]
 		}
 	}
 	return nil
