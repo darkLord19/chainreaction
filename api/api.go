@@ -76,7 +76,6 @@ func JoinExistingGame(c *gin.Context) {
 	}
 
 	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, nil})
-	gInstance.CurrentActivePlayers++
 
 	c.JSON(200, gin.H{"Success": "You have joined the game mothafucka", "game instance": gInstance,
 		"user": gin.H{"username": username, "color": color}})
@@ -120,6 +119,8 @@ func StartGamePlay(c *gin.Context) {
 		return
 	}
 
+	gInstance.CurrentActivePlayers++
+
 	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -140,6 +141,7 @@ func StartGamePlay(c *gin.Context) {
 		if err != nil {
 			log.Printf("error: %v", err)
 			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
+			gInstance.CurrentActivePlayers--
 			break
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
