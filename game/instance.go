@@ -26,6 +26,7 @@ type Instance struct {
 	PlayersCount         int `json:"players_count" form:"players_count"`
 	CurrentTurn          int `json:"current_turn"`
 	AllPlayers           []Player
+	Winner               Player
 	RoomName             string
 	Dimension            int `json:"dimension" form:"dimension"`
 	CreatedOn            time.Time
@@ -34,6 +35,8 @@ type Instance struct {
 	broadcastMove        chan Move
 	broadcastBoardFlag   bool
 	broadcastBoard       chan NewState
+	didWin               bool
+	broadcastWinner      chan Winner
 }
 
 // Player represents a single player
@@ -56,6 +59,12 @@ type NewState struct {
 	MsgType     int       `json:"msg_type"`
 	NewCurrTurn int       `json:"new_currturn"`
 	NewBoard    [][]Pixel `json:"new_board"`
+}
+
+// Winner struct is used to send winner notification to users
+type Winner struct {
+	MsgType int    `json:"msg_type"`
+	Winner  Player `json:"winner"`
 }
 
 // InitBroadcasts initializes brodcast channel
@@ -91,6 +100,24 @@ func (i *Instance) BroadcastBoardUpdates() {
 		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
 				msg := NewState{stateUpBcastMsg, i.CurrentTurn, i.Board}
+				err := p.WsConnection.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					p.WsConnection.Close()
+					p.WsConnection = nil
+				}
+			}
+			i.broadcastBoardFlag = false
+		}
+	}
+}
+
+// BroadcastWinner broadcasts winner to users
+func (i *Instance) BroadcastWinner() {
+	for {
+		if i.didWin {
+			for _, p := range i.AllPlayers {
+				msg := Winner{didUserWonMsg, i.Winner}
 				err := p.WsConnection.WriteJSON(msg)
 				if err != nil {
 					log.Printf("error: %v", err)

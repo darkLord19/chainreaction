@@ -162,6 +162,7 @@ func StartGamePlay(c *gin.Context) {
 
 	go gInstance.BroadcastMoves()
 	go gInstance.BroadcastBoardUpdates()
+	go gInstance.BroadcastWinner()
 
 	for {
 		if gInstance.CurrentActivePlayers != gInstance.PlayersCount {
