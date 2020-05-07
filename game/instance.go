@@ -7,6 +7,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	moveRcvMsg int = iota
+	moveBcastMsg
+	stateUpBcastMsg
+	didUserWonMsg
+)
+
 // Pixel represents current state of one pixel on board
 type Pixel struct {
 	DotCount int    `json:"dot_count"`
@@ -26,7 +33,7 @@ type Instance struct {
 	CurrentActivePlayers int
 	broadcastMove        chan Move
 	broadcastBoardFlag   bool
-	broadcastBoard       chan [][]Pixel
+	broadcastBoard       chan NewState
 }
 
 // Player represents a single player
@@ -38,15 +45,23 @@ type Player struct {
 
 // Move struct is used to get Move messages from websocket client
 type Move struct {
+	MsgType        int    `json:"msg_type"`
 	XPos           int    `json:"xpos"`
 	YPos           int    `json:"ypos"`
 	PlayerUserName string `json:"player_username"`
 }
 
+// NewState struct is used to represent board update for websocket broadcast
+type NewState struct {
+	MsgType     int       `json:"msg_type"`
+	NewCurrTurn int       `json:"new_currturn"`
+	NewBoard    [][]Pixel `json:"new_board"`
+}
+
 // InitBroadcasts initializes brodcast channel
 func (i *Instance) InitBroadcasts() {
 	i.broadcastMove = make(chan Move)
-	i.broadcastBoard = make(chan [][]Pixel)
+	i.broadcastBoard = make(chan NewState)
 }
 
 // GetBroadcastMove return brodcast channel
@@ -59,6 +74,7 @@ func (i *Instance) BroadcastMoves() {
 	for {
 		move := <-i.broadcastMove
 		for _, p := range i.AllPlayers {
+			move.MsgType = moveBcastMsg
 			err := p.WsConnection.WriteJSON(move)
 			if err != nil {
 				log.Printf("error: %v", err)
@@ -74,7 +90,8 @@ func (i *Instance) BroadcastBoardUpdates() {
 	for {
 		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
-				err := p.WsConnection.WriteJSON(i)
+				msg := NewState{stateUpBcastMsg, i.CurrentTurn, i.Board}
+				err := p.WsConnection.WriteJSON(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.WsConnection.Close()
