@@ -49,13 +49,13 @@ func (i *Instance) InitBroadcasts() {
 	i.broadcastBoard = make(chan [][]Pixel)
 }
 
-// GetbroadcastMove return brodcast channel
-func (i *Instance) GetbroadcastMove() chan Move {
+// GetBroadcastMove return brodcast channel
+func (i *Instance) GetBroadcastMove() chan Move {
 	return i.broadcastMove
 }
 
-// BroadcastMoveMoves brodcasts move to all players
-func (i *Instance) BroadcastMoveMoves() {
+// BroadcastMoves brodcasts move to all players
+func (i *Instance) BroadcastMoves() {
 	for {
 		move := <-i.broadcastMove
 		for _, p := range i.AllPlayers {

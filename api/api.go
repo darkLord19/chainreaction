@@ -129,7 +129,7 @@ func StartGamePlay(c *gin.Context) {
 
 	player.WsConnection = ws
 
-	go gInstance.BroadcastMoveMoves()
+	go gInstance.BroadcastMoves()
 	go gInstance.BroadcastBoardUpdates()
 
 	for {
@@ -145,7 +145,7 @@ func StartGamePlay(c *gin.Context) {
 			break
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
-			gInstance.GetbroadcastMove() <- move
+			gInstance.GetBroadcastMove() <- move
 			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
 			simulate.ChainReaction(gInstance, move)
 		}
