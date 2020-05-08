@@ -43,7 +43,7 @@ func CreateNewGame(c *gin.Context) {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
 	gameInstance.InitChannel()
-	gameInstance.InitBbcastMutex()
+	gameInstance.InitGameInstanceMutexes()
 	datastore.AddGameInstance(&gameInstance)
 	ret = gin.H{"GameRoomName": gameInstance.RoomName}
 	c.JSON(http.StatusCreated, ret)
@@ -66,7 +66,7 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusNotFound, ret)
 		return
 	}
-	if gInstance.CurrentActivePlayers == gInstance.PlayersCount {
+	if gInstance.GetCurrentActivePlayers() == gInstance.PlayersCount {
 		ret = gin.H{"Error": "Game is already full."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusForbidden, ret)
@@ -131,7 +131,7 @@ func StartGamePlay(c *gin.Context) {
 
 	gInstance, exists := datastore.GetGameInstance(roomname)
 
-	if gInstance.CurrentActivePlayers == gInstance.PlayersCount {
+	if gInstance.GetCurrentActivePlayers() == gInstance.PlayersCount {
 		ret = gin.H{"Error": "Game is already full."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
@@ -154,7 +154,7 @@ func StartGamePlay(c *gin.Context) {
 		return
 	}
 
-	gInstance.CurrentActivePlayers++
+	gInstance.IncCurrentActivePlayers()
 
 	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -171,15 +171,15 @@ func StartGamePlay(c *gin.Context) {
 	go gInstance.BroadcastWinner()
 
 	for {
-		if gInstance.CurrentActivePlayers != gInstance.PlayersCount {
+		if gInstance.GetCurrentActivePlayers() != gInstance.PlayersCount {
 			continue
 		}
 		var move game.Move
 		err := ws.ReadJSON(&move)
 		if err != nil {
 			log.Printf("error: %v", err)
-			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].SetWsConnection(nil)
-			gInstance.CurrentActivePlayers--
+			gInstance.AllPlayers[gInstance.GetCurrentActivePlayers()-1].SetWsConnection(nil)
+			gInstance.DecCurrentActivePlayers()
 			break
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
