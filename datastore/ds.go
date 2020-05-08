@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"strings"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/chainreaction/models"
@@ -36,4 +37,16 @@ func GetNewUniqueRoomName() string {
 		name = randomdata.SillyName()
 	}
 	return strings.ToLower(name)
+}
+
+// Cleanup removes expired and over games from data store
+func Cleanup() {
+	for {
+		time.Sleep(1 * time.Minute)
+		for k, v := range activeGameInstances {
+			if v.ExpiresOn.Sub(time.Now().UTC()) < 0 {
+				delete(activeGameInstances, k)
+			}
+		}
+	}
 }
