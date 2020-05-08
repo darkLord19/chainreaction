@@ -24,20 +24,21 @@ type Pixel struct {
 
 // Instance represents a single game instance
 type Instance struct {
-	Board                [][]Pixel
-	PlayersCount         int `json:"players_count" form:"players_count"`
-	CurrentTurn          int `json:"current_turn"`
-	AllPlayers           []Player
-	Winner               Player
-	RoomName             string
-	Dimension            int `json:"dimension" form:"dimension"`
-	CreatedOn            time.Time
-	ExpiresOn            time.Time
-	CurrentActivePlayers int
-	getMove              chan Move
-	broadcastBoardFlag   bool
-	didWin               bool
-	bbcastMutex          Mutex //bbcastMutex protects read write to broadcastBoardFlag
+	Board                  [][]Pixel
+	PlayersCount           int `json:"players_count" form:"players_count"`
+	CurrentTurn            int `json:"current_turn"`
+	AllPlayers             []Player
+	Winner                 Player
+	RoomName               string
+	Dimension              int `json:"dimension" form:"dimension"`
+	CreatedOn              time.Time
+	ExpiresOn              time.Time
+	currentActivePlayers   int
+	getMove                chan Move
+	broadcastBoardFlag     bool
+	didWin                 bool
+	bbcastMutex            Mutex //bbcastMutex protects read write to broadcastBoardFlag
+	currActivePlayersMutex Mutex //currActivePlayersMutex protects read write to CurrentActivePlayers
 }
 
 // Player represents a single player
@@ -85,9 +86,11 @@ func (p *Player) InitMutex() {
 	p.mutex.Unlock()
 }
 
-// InitBbcastMutex initializes bbcastmutex
-func (i *Instance) InitBbcastMutex() {
+// InitGameInstanceMutexes initializes bbcastmutex
+func (i *Instance) InitGameInstanceMutexes() {
 	i.bbcastMutex = make(Mutex, 1)
+	i.currActivePlayersMutex = make(Mutex, 1)
+	i.currActivePlayersMutex.Unlock()
 	i.bbcastMutex.Unlock()
 }
 
@@ -182,6 +185,28 @@ func (i *Instance) CheckIfColorSelected(color string) bool {
 		}
 	}
 	return false
+}
+
+// IncCurrentActivePlayers increases current active players count safely
+func (i *Instance) IncCurrentActivePlayers() {
+	i.currActivePlayersMutex.Lock()
+	i.currentActivePlayers++
+	i.currActivePlayersMutex.Unlock()
+}
+
+// DecCurrentActivePlayers decreases active players count safely
+func (i *Instance) DecCurrentActivePlayers() {
+	i.currActivePlayersMutex.Lock()
+	i.currentActivePlayers--
+	i.currActivePlayersMutex.Unlock()
+}
+
+// GetCurrentActivePlayers gets the current active players count safely
+func (i *Instance) GetCurrentActivePlayers() int {
+	i.currActivePlayersMutex.Lock()
+	val := i.currentActivePlayers
+	i.currActivePlayersMutex.Unlock()
+	return val
 }
 
 // GetPlayerByID returns Player struct from instance id
