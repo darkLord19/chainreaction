@@ -33,7 +33,7 @@ func AddGameInstance(gameInstance *models.Instance) {
 // GetNewUniqueRoomName returns new random unique name for game room
 func GetNewUniqueRoomName() string {
 	name := randomdata.SillyName()
-	for allGameInstances[name] != nil {
+	for activeGameInstances[name] != nil {
 		name = randomdata.SillyName()
 	}
 	return strings.ToLower(name)
