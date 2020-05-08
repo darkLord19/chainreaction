@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/chainreaction/datastore"
-	"github.com/chainreaction/game"
+	"github.com/chainreaction/models"
 	"github.com/gin-gonic/gin"
 )
 
 // CreateNewGame provides endpoint to create a new game instance
 func CreateNewGame(c *gin.Context) {
-	var gameInstance game.Instance
+	var gameInstance models.Instance
 	var ret gin.H
 	if c.ShouldBindQuery(&gameInstance) != nil {
 		ret = gin.H{"Error": "Bad request"}
@@ -35,9 +35,9 @@ func CreateNewGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
 		return
 	}
-	gameInstance.Board = make([][]game.Pixel, gameInstance.Dimension)
+	gameInstance.Board = make([][]models.Pixel, gameInstance.Dimension)
 	for i := 0; i < gameInstance.Dimension; i++ {
-		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
+		gameInstance.Board[i] = make([]models.Pixel, gameInstance.Dimension)
 	}
 	gameInstance.InitChannel()
 	gameInstance.InitGameInstanceMutexes()

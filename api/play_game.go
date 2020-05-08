@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/chainreaction/datastore"
-	"github.com/chainreaction/game"
+	"github.com/chainreaction/models"
 	"github.com/chainreaction/simulate"
 	"github.com/chainreaction/utils"
 	"github.com/gin-gonic/gin"
@@ -75,7 +75,7 @@ func StartGamePlay(c *gin.Context) {
 		if gInstance.GetCurrentActivePlayers() != gInstance.PlayersCount {
 			continue
 		}
-		var move game.Move
+		var move models.Move
 		err := ws.ReadJSON(&move)
 		if err != nil {
 			log.Printf("error: %v", err)

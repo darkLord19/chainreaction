@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/chainreaction/datastore"
-	"github.com/chainreaction/game"
+	"github.com/chainreaction/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -60,7 +60,7 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 
-	p := game.Player{}
+	p := models.Player{}
 	p.UserName = username
 	p.Color = color
 	gInstance.AllPlayers = append(gInstance.AllPlayers, p)
