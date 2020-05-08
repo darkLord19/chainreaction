@@ -132,7 +132,8 @@ func (i *Instance) BroadcastMoves() {
 // BroadcastBoardUpdates broadcasts board updates to users
 func (i *Instance) BroadcastBoardUpdates() {
 	for {
-		if i.GetBroadcastBoardFlag() {
+		i.bbcastMutex.Lock()
+		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
 				msg := NewState{stateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := p.writeToWebsocket(msg)
@@ -144,6 +145,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 			}
 			i.SetBroadcastBoardFlag(false)
 		}
+		i.bbcastMutex.Unlock()
 	}
 }
 
@@ -170,14 +172,6 @@ func (i *Instance) SetBroadcastBoardFlag(val bool) {
 	i.bbcastMutex.Lock()
 	i.broadcastBoardFlag = val
 	i.bbcastMutex.Unlock()
-}
-
-// GetBroadcastBoardFlag retuens broadcast board state flag safely
-func (i *Instance) GetBroadcastBoardFlag() bool {
-	i.bbcastMutex.Lock()
-	val := i.broadcastBoardFlag
-	i.bbcastMutex.Unlock()
-	return val
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
