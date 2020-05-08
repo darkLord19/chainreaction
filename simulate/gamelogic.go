@@ -3,11 +3,11 @@ package simulate
 import (
 	"fmt"
 
-	"github.com/chainreaction/game"
+	"github.com/chainreaction/models"
 	"github.com/chainreaction/utils"
 )
 
-func updateBoard(board *[][]game.Pixel, x int, y int, color string) {
+func updateBoard(board *[][]models.Pixel, x int, y int, color string) {
 	q := utils.NewQueue()
 	q.Enqueue(utils.Pair{x, y})
 
@@ -40,7 +40,7 @@ func updateBoard(board *[][]game.Pixel, x int, y int, color string) {
 	return
 }
 
-func updatePixelState(board *[][]game.Pixel, x int, y int, color string, q *utils.Queue) {
+func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *utils.Queue) {
 	(*board)[x][y].DotCount = 0
 	(*board)[x][y].Color = ""
 
@@ -70,23 +70,23 @@ func updatePixelState(board *[][]game.Pixel, x int, y int, color string, q *util
 }
 
 // ChainReaction is called after each move and spreads the orbs on the board
-func ChainReaction(gameInstance *game.Instance, move game.Move) error {
-	board := gameInstance.Board
+func ChainReaction(modelsInstance *models.Instance, move models.Move) error {
+	board := modelsInstance.Board
 
 	x, y := move.XPos, move.YPos
 
-	if x < 0 && y < 0 && x > gameInstance.Dimension && y > gameInstance.Dimension {
+	if x < 0 && y < 0 && x > modelsInstance.Dimension && y > modelsInstance.Dimension {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 
 	if board[x][y].DotCount != 0 &&
-		board[x][y].Color != gameInstance.GetPlayerByID(move.PlayerUserName).Color {
+		board[x][y].Color != modelsInstance.GetPlayerByID(move.PlayerUserName).Color {
 		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[x][y].Color)
 	}
 
-	updateBoard(&board, x, y, gameInstance.GetPlayerByID(move.PlayerUserName).Color)
+	updateBoard(&board, x, y, modelsInstance.GetPlayerByID(move.PlayerUserName).Color)
 
-	gameInstance.SetBroadcastBoardFlag(true)
+	modelsInstance.SetBroadcastBoardFlag(true)
 
 	return nil
 }
