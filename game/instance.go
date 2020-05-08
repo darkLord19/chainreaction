@@ -34,7 +34,7 @@ type Instance struct {
 	CreatedOn            time.Time
 	ExpiresOn            time.Time
 	CurrentActivePlayers int
-	broadcastMove        chan Move
+	getMove              chan Move
 	broadcastBoardFlag   bool
 	didWin               bool
 }
@@ -85,12 +85,12 @@ func (p *Player) InitMutex() {
 
 // InitChannel initializes brodcast channel
 func (i *Instance) InitChannel() {
-	i.broadcastMove = make(chan Move)
+	i.getMove = make(chan Move)
 }
 
-// GetBroadcastMove return brodcast channel
-func (i *Instance) GetBroadcastMove() chan Move {
-	return i.broadcastMove
+// WriteToMoveCh return brodcast channel
+func (i *Instance) WriteToMoveCh(m Move) {
+	i.getMove <- m
 }
 
 func (p *Player) writeTochannel(val interface{}) error {
@@ -108,7 +108,7 @@ func (p *Player) SetWsConnection(ws *websocket.Conn) {
 // BroadcastMoves brodcasts move to all players
 func (i *Instance) BroadcastMoves() {
 	for {
-		move := <-i.broadcastMove
+		move := <-i.getMove
 		for _, p := range i.AllPlayers {
 			move.MsgType = moveBcastMsg
 			err := p.writeTochannel(move)
