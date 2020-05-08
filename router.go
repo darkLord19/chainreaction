@@ -22,7 +22,7 @@ func mock() {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
 	gameInstance.InitChannel()
-	gameInstance.InitBbcastMutex()
+	gameInstance.InitGameInstanceMutexes()
 	datastore.AddGameInstance(&gameInstance)
 
 	p := game.Player{}
