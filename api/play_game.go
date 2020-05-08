@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/chainreaction/constants"
+
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/helpers"
 	"github.com/chainreaction/models"
@@ -89,7 +91,7 @@ func StartGamePlay(c *gin.Context) {
 			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
 			err = simulate.ChainReaction(gInstance, move)
 			if err != nil {
-				player.NotifyIndividual(err.Error())
+				helpers.NotifyIndividual(player, models.Err{constants.InvalidMoveMsg, err.Error()})
 			}
 		}
 	}

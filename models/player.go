@@ -1,10 +1,6 @@
 package models
 
 import (
-	"log"
-
-	"github.com/chainreaction/constants"
-
 	"github.com/chainreaction/utils"
 	"github.com/gorilla/websocket"
 )
@@ -40,17 +36,4 @@ func (p *Player) CleanupWs() {
 // SetWsConnection sets ws connection field of Player
 func (p *Player) SetWsConnection(ws *websocket.Conn) {
 	p.wsConnection = ws
-}
-
-// NotifyIndividual notifies individual player
-func (p *Player) NotifyIndividual(val string) {
-	tmp := Err{}
-	tmp.MsgType = constants.InvalidMoveMsg
-	tmp.ErrStr = val
-	err := p.WriteToWebsocket(tmp)
-	if err != nil {
-		log.Printf("error: %v", err)
-		p.wsConnection.Close()
-		p.wsConnection = nil
-	}
 }
