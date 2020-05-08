@@ -42,7 +42,7 @@ func CreateNewGame(c *gin.Context) {
 	for i := 0; i < gameInstance.Dimension; i++ {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
-	gameInstance.InitBroadcasts()
+	gameInstance.InitChannel()
 	datastore.AddGameInstance(&gameInstance)
 	ret = gin.H{"GameRoomName": gameInstance.RoomName}
 	c.JSON(http.StatusCreated, ret)
@@ -98,7 +98,10 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 
-	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, nil, nil})
+	p := game.Player{}
+	p.UserName = username
+	p.Color = color
+	gInstance.AllPlayers = append(gInstance.AllPlayers, p)
 
 	ret = gin.H{"Success": "You have joined the game mothafucka", "game instance": gInstance,
 		"user": gin.H{"username": username, "color": color}}
@@ -158,7 +161,7 @@ func StartGamePlay(c *gin.Context) {
 	}
 	defer ws.Close()
 
-	player.WsConnection = ws
+	player.SetWsConnection(ws)
 
 	player.InitMutex()
 
@@ -174,7 +177,7 @@ func StartGamePlay(c *gin.Context) {
 		err := ws.ReadJSON(&move)
 		if err != nil {
 			log.Printf("error: %v", err)
-			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].WsConnection = nil
+			gInstance.AllPlayers[gInstance.CurrentActivePlayers-1].SetWsConnection(nil)
 			gInstance.CurrentActivePlayers--
 			break
 		}
