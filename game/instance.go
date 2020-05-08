@@ -142,7 +142,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 					p.wsConnection = nil
 				}
 			}
-			i.broadcastBoardFlag = false
+			i.SetBroadcastBoardFlag(false)
 		}
 	}
 }
@@ -160,15 +160,15 @@ func (i *Instance) BroadcastWinner() {
 					p.wsConnection = nil
 				}
 			}
-			i.broadcastBoardFlag = false
+			i.didWin = false
 		}
 	}
 }
 
 // SetBroadcastBoardFlag sets broadcast board state flag safely
-func (i *Instance) SetBroadcastBoardFlag() {
+func (i *Instance) SetBroadcastBoardFlag(val bool) {
 	i.bbcastMutex.Lock()
-	i.broadcastBoardFlag = true
+	i.broadcastBoardFlag = val
 	i.bbcastMutex.Unlock()
 }
 
