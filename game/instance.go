@@ -101,7 +101,7 @@ func (i *Instance) WriteToMoveCh(m Move) {
 	i.getMove <- m
 }
 
-func (p *Player) writeTochannel(val interface{}) error {
+func (p *Player) writeToWebsocket(val interface{}) error {
 	p.mutex.Lock()
 	err := p.wsConnection.WriteJSON(val)
 	p.mutex.Unlock()
@@ -119,7 +119,7 @@ func (i *Instance) BroadcastMoves() {
 		move := <-i.getMove
 		for _, p := range i.AllPlayers {
 			move.MsgType = moveBcastMsg
-			err := p.writeTochannel(move)
+			err := p.writeToWebsocket(move)
 			if err != nil {
 				log.Printf("error: %v", err)
 				p.wsConnection.Close()
@@ -135,7 +135,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 		if i.GetBroadcastBoardFlag() {
 			for _, p := range i.AllPlayers {
 				msg := NewState{stateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
-				err := p.writeTochannel(msg)
+				err := p.writeToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.wsConnection.Close()
@@ -153,7 +153,7 @@ func (i *Instance) BroadcastWinner() {
 		if i.didWin {
 			for _, p := range i.AllPlayers {
 				msg := Winner{didUserWonMsg, i.Winner}
-				err := p.writeTochannel(msg)
+				err := p.writeToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.wsConnection.Close()
