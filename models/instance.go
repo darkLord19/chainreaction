@@ -19,6 +19,7 @@ type Instance struct {
 	Dimension              int `json:"dimension" form:"dimension"`
 	CreatedOn              time.Time
 	ExpiresOn              time.Time
+	IsOver                 bool
 	currentActivePlayers   int
 	getMove                chan Move
 	broadcastBoardFlag     bool
