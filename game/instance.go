@@ -14,6 +14,8 @@ const (
 	didUserWonMsg
 )
 
+type Mutex chan struct{}
+
 // Pixel represents current state of one pixel on board
 type Pixel struct {
 	DotCount int    `json:"dot_count"`
@@ -43,6 +45,7 @@ type Instance struct {
 type Player struct {
 	UserName     string
 	Color        string
+	mutex        Mutex
 	WsConnection *websocket.Conn
 }
 
@@ -67,6 +70,21 @@ type Winner struct {
 	Winner  Player `json:"winner"`
 }
 
+// Lock the kraken
+func (m Mutex) Lock() {
+	<-m
+}
+
+// Unlock the kraken
+func (m Mutex) Unlock() {
+	m <- struct{}{}
+}
+
+// InitMutex initializes mutex
+func (p *Player) InitMutex() {
+	p.mutex = make(Mutex, 1)
+}
+
 // InitBroadcasts initializes brodcast channel
 func (i *Instance) InitBroadcasts() {
 	i.broadcastMove = make(chan Move)
@@ -78,13 +96,20 @@ func (i *Instance) GetBroadcastMove() chan Move {
 	return i.broadcastMove
 }
 
+func (p *Player) writeTochannel(val interface{}) error {
+	p.mutex.Lock()
+	err := p.WsConnection.WriteJSON(val)
+	p.mutex.Unlock()
+	return err
+}
+
 // BroadcastMoves brodcasts move to all players
 func (i *Instance) BroadcastMoves() {
 	for {
 		move := <-i.broadcastMove
 		for _, p := range i.AllPlayers {
 			move.MsgType = moveBcastMsg
-			err := p.WsConnection.WriteJSON(move)
+			err := p.writeTochannel(move)
 			if err != nil {
 				log.Printf("error: %v", err)
 				p.WsConnection.Close()
@@ -100,7 +125,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 		if i.broadcastBoardFlag {
 			for _, p := range i.AllPlayers {
 				msg := NewState{stateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
-				err := p.WsConnection.WriteJSON(msg)
+				err := p.writeTochannel(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.WsConnection.Close()
@@ -118,7 +143,7 @@ func (i *Instance) BroadcastWinner() {
 		if i.didWin {
 			for _, p := range i.AllPlayers {
 				msg := Winner{didUserWonMsg, i.Winner}
-				err := p.WsConnection.WriteJSON(msg)
+				err := p.writeTochannel(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					p.WsConnection.Close()
