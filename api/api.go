@@ -185,7 +185,10 @@ func StartGamePlay(c *gin.Context) {
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
 			gInstance.WriteToMoveCh(move)
 			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
-			simulate.ChainReaction(gInstance, move)
+			err = simulate.ChainReaction(gInstance, move)
+			if err != nil {
+				player.NotifyIndividual(err.Error())
+			}
 		}
 	}
 

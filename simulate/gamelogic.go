@@ -79,6 +79,11 @@ func ChainReaction(gameInstance *game.Instance, move game.Move) error {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 
+	if board[x][y].DotCount != 0 &&
+		board[x][y].Color != gameInstance.GetPlayerByID(move.PlayerUserName).Color {
+		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[x][y].Color)
+	}
+
 	updateBoard(&board, x, y, gameInstance.GetPlayerByID(move.PlayerUserName).Color)
 
 	gameInstance.SetBroadcastBoardFlag(true)

@@ -12,6 +12,7 @@ const (
 	moveBcastMsg
 	stateUpBcastMsg
 	didUserWonMsg
+	invalidMove
 )
 
 type Mutex chan struct{}
@@ -70,6 +71,11 @@ type Winner struct {
 	Winner  Player `json:"winner"`
 }
 
+type Err struct {
+	MsgType int    `json:"msg_type"`
+	ErrStr  string `json: "errstr"`
+}
+
 // Lock the kraken
 func (m Mutex) Lock() {
 	<-m
@@ -114,6 +120,19 @@ func (p *Player) writeToWebsocket(val interface{}) error {
 // SetWsConnection sets ws connection field of Player
 func (p *Player) SetWsConnection(ws *websocket.Conn) {
 	p.wsConnection = ws
+}
+
+// NotifyIndividual notifies individual player
+func (p *Player) NotifyIndividual(val string) {
+	tmp := Err{}
+	tmp.MsgType = invalidMove
+	tmp.ErrStr = val
+	err := p.writeToWebsocket(tmp)
+	if err != nil {
+		log.Printf("error: %v", err)
+		p.wsConnection.Close()
+		p.wsConnection = nil
+	}
 }
 
 // BroadcastMoves brodcasts move to all players
