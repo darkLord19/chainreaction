@@ -37,6 +37,7 @@ type Instance struct {
 	getMove              chan Move
 	broadcastBoardFlag   bool
 	didWin               bool
+	bbcastMutex          Mutex //bbcastMutex protects read write to broadcastBoardFlag
 }
 
 // Player represents a single player
@@ -83,6 +84,12 @@ func (p *Player) InitMutex() {
 	p.mutex = make(Mutex, 1)
 }
 
+// InitBbcastMutex initializes bbcastmutex
+func (i *Instance) InitBbcastMutex() {
+	i.bbcastMutex = make(Mutex, 1)
+	i.bbcastMutex.Unlock()
+}
+
 // InitChannel initializes brodcast channel
 func (i *Instance) InitChannel() {
 	i.getMove = make(chan Move)
@@ -124,7 +131,7 @@ func (i *Instance) BroadcastMoves() {
 // BroadcastBoardUpdates broadcasts board updates to users
 func (i *Instance) BroadcastBoardUpdates() {
 	for {
-		if i.broadcastBoardFlag {
+		if i.GetBroadcastBoardFlag() {
 			for _, p := range i.AllPlayers {
 				msg := NewState{stateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := p.writeTochannel(msg)
@@ -157,9 +164,19 @@ func (i *Instance) BroadcastWinner() {
 	}
 }
 
-// SetBroadcastBoardFlag sets broadcast board state flag
+// SetBroadcastBoardFlag sets broadcast board state flag safely
 func (i *Instance) SetBroadcastBoardFlag() {
+	i.bbcastMutex.Lock()
 	i.broadcastBoardFlag = true
+	i.bbcastMutex.Unlock()
+}
+
+// GetBroadcastBoardFlag retuens broadcast board state flag safely
+func (i *Instance) GetBroadcastBoardFlag() bool {
+	i.bbcastMutex.Lock()
+	val := i.broadcastBoardFlag
+	i.bbcastMutex.Unlock()
+	return val
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
