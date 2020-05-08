@@ -88,7 +88,7 @@ func checkIfWon(gI *models.Instance, color string) bool {
 }
 
 // ChainReaction is called after each move and spreads the orbs on the board
-func ChainReaction(modelsInstance *models.Instance, move models.Move) error {
+func ChainReaction(modelsInstance *models.Instance, move models.MoveMsg) error {
 	board := modelsInstance.Board
 	player := modelsInstance.GetPlayerByID(move.PlayerUserName)
 

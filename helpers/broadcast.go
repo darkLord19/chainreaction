@@ -9,7 +9,7 @@ import (
 
 // BroadcastMoves brodcasts move to all players
 func BroadcastMoves(i *models.Instance) {
-	var move models.Move
+	var move models.MoveMsg
 	for {
 		i.ReadMoveChan(&move)
 		for _, p := range i.AllPlayers {
@@ -33,7 +33,7 @@ func BroadcastBoardUpdates(i *models.Instance) {
 		}
 		if val.(bool) {
 			for _, p := range i.AllPlayers {
-				msg := models.NewState{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
+				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := p.WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
@@ -58,7 +58,7 @@ func BroadcastWinner(i *models.Instance) {
 		}
 		if val.(bool) {
 			for _, p := range i.AllPlayers {
-				msg := models.Winner{constants.UserWonMsg, *i.Winner}
+				msg := models.WinnerMsg{constants.UserWonMsg, *i.Winner}
 				err := p.WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)

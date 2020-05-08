@@ -78,7 +78,7 @@ func StartGamePlay(c *gin.Context) {
 		if gInstance.GetCurrentActivePlayers() != gInstance.PlayersCount {
 			continue
 		}
-		var move models.Move
+		var move models.MoveMsg
 		err := ws.ReadJSON(&move)
 		if err != nil {
 			log.Printf("error: %v", err)
@@ -91,7 +91,7 @@ func StartGamePlay(c *gin.Context) {
 			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
 			err = simulate.ChainReaction(gInstance, move)
 			if err != nil {
-				helpers.NotifyIndividual(player, models.Err{constants.InvalidMoveMsg, err.Error()})
+				helpers.NotifyIndividual(player, models.ErrMsg{constants.InvalidMoveMsg, err.Error()})
 			}
 		}
 	}

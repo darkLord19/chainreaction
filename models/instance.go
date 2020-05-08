@@ -19,7 +19,7 @@ type Instance struct {
 	ExpiresOn              time.Time
 	IsOver                 bool
 	currentActivePlayers   int
-	getMove                chan Move
+	getMove                chan MoveMsg
 	broadcastBoardFlag     bool
 	didWin                 bool
 	allPlayedOnce          bool
@@ -98,16 +98,16 @@ func (i *Instance) ReadUnsafe(name string) interface{} {
 
 // InitChannel initializes brodcast channel
 func (i *Instance) InitChannel() {
-	i.getMove = make(chan Move)
+	i.getMove = make(chan MoveMsg)
 }
 
 // WriteToMoveCh return brodcast channel
-func (i *Instance) WriteToMoveCh(m Move) {
+func (i *Instance) WriteToMoveCh(m MoveMsg) {
 	i.getMove <- m
 }
 
 // ReadMoveChan reads value from move chan
-func (i *Instance) ReadMoveChan(m *Move) {
+func (i *Instance) ReadMoveChan(m *MoveMsg) {
 	*m = <-i.getMove
 }
 
