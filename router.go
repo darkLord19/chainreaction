@@ -21,11 +21,17 @@ func mock() {
 	for i := 0; i < gameInstance.Dimension; i++ {
 		gameInstance.Board[i] = make([]game.Pixel, gameInstance.Dimension)
 	}
-	gameInstance.InitBroadcasts()
+	gameInstance.InitChannel()
 	datastore.AddGameInstance(&gameInstance)
 
-	gameInstance.AllPlayers = append(gameInstance.AllPlayers, game.Player{"test1", "red", nil})
-	gameInstance.AllPlayers = append(gameInstance.AllPlayers, game.Player{"test2", "blue", nil})
+	p := game.Player{}
+	p.UserName = "test1"
+	p.Color = "red"
+	gameInstance.AllPlayers = append(gameInstance.AllPlayers, p)
+	p = game.Player{}
+	p.UserName = "test2"
+	p.Color = "green"
+	gameInstance.AllPlayers = append(gameInstance.AllPlayers, p)
 }
 
 func main() {
