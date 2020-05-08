@@ -44,7 +44,7 @@ type Player struct {
 	UserName     string
 	Color        string
 	mutex        Mutex
-	WsConnection *websocket.Conn
+	wsConnection *websocket.Conn
 }
 
 // Move struct is used to get Move messages from websocket client
@@ -83,10 +83,9 @@ func (p *Player) InitMutex() {
 	p.mutex = make(Mutex, 1)
 }
 
-// InitBroadcasts initializes brodcast channel
-func (i *Instance) InitBroadcasts() {
+// InitChannel initializes brodcast channel
+func (i *Instance) InitChannel() {
 	i.broadcastMove = make(chan Move)
-	i.broadcastBoard = make(chan NewState)
 }
 
 // GetBroadcastMove return brodcast channel
@@ -96,9 +95,14 @@ func (i *Instance) GetBroadcastMove() chan Move {
 
 func (p *Player) writeTochannel(val interface{}) error {
 	p.mutex.Lock()
-	err := p.WsConnection.WriteJSON(val)
+	err := p.wsConnection.WriteJSON(val)
 	p.mutex.Unlock()
 	return err
+}
+
+// SetWsConnection sets ws connection field of Player
+func (p *Player) SetWsConnection(ws *websocket.Conn) {
+	p.wsConnection = ws
 }
 
 // BroadcastMoves brodcasts move to all players
@@ -110,8 +114,8 @@ func (i *Instance) BroadcastMoves() {
 			err := p.writeTochannel(move)
 			if err != nil {
 				log.Printf("error: %v", err)
-				p.WsConnection.Close()
-				p.WsConnection = nil
+				p.wsConnection.Close()
+				p.wsConnection = nil
 			}
 		}
 	}
@@ -126,8 +130,8 @@ func (i *Instance) BroadcastBoardUpdates() {
 				err := p.writeTochannel(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
-					p.WsConnection.Close()
-					p.WsConnection = nil
+					p.wsConnection.Close()
+					p.wsConnection = nil
 				}
 			}
 			i.broadcastBoardFlag = false
@@ -144,8 +148,8 @@ func (i *Instance) BroadcastWinner() {
 				err := p.writeTochannel(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
-					p.WsConnection.Close()
-					p.WsConnection = nil
+					p.wsConnection.Close()
+					p.wsConnection = nil
 				}
 			}
 			i.broadcastBoardFlag = false
