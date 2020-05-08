@@ -81,7 +81,7 @@ func ChainReaction(gameInstance *game.Instance, move game.Move) error {
 
 	updateBoard(&board, x, y, gameInstance.GetPlayerByID(move.PlayerUserName).Color)
 
-	gameInstance.SetBroadcastBoardFlag()
+	gameInstance.SetBroadcastBoardFlag(true)
 
 	return nil
 }
