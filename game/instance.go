@@ -82,6 +82,7 @@ func (m Mutex) Unlock() {
 // InitMutex initializes mutex
 func (p *Player) InitMutex() {
 	p.mutex = make(Mutex, 1)
+	p.mutex.Unlock()
 }
 
 // InitBbcastMutex initializes bbcastmutex
