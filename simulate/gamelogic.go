@@ -88,13 +88,13 @@ func checkIfWon(gI *models.Instance, color string) bool {
 }
 
 // ChainReaction is called after each move and spreads the orbs on the board
-func ChainReaction(modelsInstance *models.Instance, move models.MoveMsg) error {
-	board := modelsInstance.Board
-	player := modelsInstance.GetPlayerByID(move.PlayerUserName)
+func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
+	board := gameInstance.Board
+	player := gameInstance.GetPlayerByID(move.PlayerUserName)
 
 	x, y := move.XPos, move.YPos
 
-	if x < 0 && y < 0 && x > modelsInstance.Dimension && y > modelsInstance.Dimension {
+	if x < 0 && y < 0 && x > gameInstance.Dimension && y > gameInstance.Dimension {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 
@@ -105,14 +105,14 @@ func ChainReaction(modelsInstance *models.Instance, move models.MoveMsg) error {
 
 	updateBoard(&board, x, y, player.Color)
 
-	won := checkIfWon(modelsInstance, player.Color)
+	won := checkIfWon(gameInstance, player.Color)
 
-	helpers.SetIfAllPlayedOnce(modelsInstance, player.UserName)
+	helpers.SetIfAllPlayedOnce(gameInstance, player.UserName)
 
-	modelsInstance.SetBroadcastBoardFlag(true)
+	gameInstance.SetBroadcastBoardFlag(true)
 
 	if won {
-		modelsInstance.SetWinner(player)
+		gameInstance.SetWinner(player)
 	}
 
 	return nil
