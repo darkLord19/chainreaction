@@ -40,11 +40,9 @@ func BroadcastBoardUpdates(i *models.Instance) {
 					p.CleanupWs()
 				}
 			}
-			i.HandleMutexes("bbcast", "unlock")
-			i.SetBroadcastBoardFlag(false)
-		} else {
-			i.HandleMutexes("bbcast", "unlock")
+			i.WriteUnsafe("bbcast", false)
 		}
+		i.HandleMutexes("bbcast", "unlock")
 	}
 }
 

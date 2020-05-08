@@ -96,6 +96,15 @@ func (i *Instance) ReadUnsafe(name string) interface{} {
 	return nil
 }
 
+// WriteUnsafe writes values directly without locking
+func (i *Instance) WriteUnsafe(name string, val interface{}) {
+	switch name {
+	case "bbcast":
+		i.broadcastBoardFlag = val.(bool)
+		break
+	}
+}
+
 // InitChannel initializes brodcast channel
 func (i *Instance) InitChannel() {
 	i.getMove = make(chan MoveMsg)
