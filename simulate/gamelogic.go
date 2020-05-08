@@ -3,6 +3,7 @@ package simulate
 import (
 	"fmt"
 
+	"github.com/chainreaction/helpers"
 	"github.com/chainreaction/models"
 	"github.com/chainreaction/utils"
 )
@@ -69,13 +70,15 @@ func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *ut
 	}
 }
 
-func checkIfWon(board *[][]models.Pixel, color string) bool {
+func checkIfWon(gI *models.Instance, color string) bool {
 	won := true
-	dim := len(*board)
-	for i := 0; i < dim; i++ {
-		for j := 0; j < dim; j++ {
-			if (*board)[i][j].DotCount != 0 {
-				if (*board)[i][j].Color != color {
+	if !helpers.CheckIfEveryonePlayed(gI) {
+		return false
+	}
+	for i := 0; i < gI.Dimension; i++ {
+		for j := 0; j < gI.Dimension; j++ {
+			if gI.Board[i][j].DotCount != 0 {
+				if gI.Board[i][j].Color != color {
 					won = false
 				}
 			}
@@ -102,7 +105,9 @@ func ChainReaction(modelsInstance *models.Instance, move models.Move) error {
 
 	updateBoard(&board, x, y, player.Color)
 
-	won := checkIfWon(&board, player.Color)
+	won := checkIfWon(modelsInstance, player.Color)
+
+	helpers.SetIfAllPlayedOnce(modelsInstance, player.UserName)
 
 	modelsInstance.SetBroadcastBoardFlag(true)
 

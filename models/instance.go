@@ -24,6 +24,8 @@ type Instance struct {
 	getMove                chan Move
 	broadcastBoardFlag     bool
 	didWin                 bool
+	allPlayedOnce          bool
+	allPlayedMutex         utils.Mutex //allPlayedMutex protects read write to allPlayedOnce
 	bbcastMutex            utils.Mutex //bbcastMutex protects read write to broadcastBoardFlag
 	currActivePlayersMutex utils.Mutex //currActivePlayersMutex protects read write to CurrentActivePlayers
 	winnerBcastMutex       utils.Mutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
@@ -40,9 +42,11 @@ func (i *Instance) InitGameInstanceMutexes() {
 	i.bbcastMutex = make(utils.Mutex, 1)
 	i.currActivePlayersMutex = make(utils.Mutex, 1)
 	i.winnerBcastMutex = make(utils.Mutex, 1)
+	i.allPlayedMutex = make(utils.Mutex, 1)
 	i.currActivePlayersMutex.Unlock()
 	i.bbcastMutex.Unlock()
 	i.winnerBcastMutex.Unlock()
+	i.allPlayedMutex.Unlock()
 }
 
 // InitChannel initializes brodcast channel
@@ -60,6 +64,21 @@ func (i *Instance) SetBroadcastBoardFlag(val bool) {
 	i.bbcastMutex.Lock()
 	i.broadcastBoardFlag = val
 	i.bbcastMutex.Unlock()
+}
+
+// GetIfAllPlayedOnce returns if all player played once at least
+func (i *Instance) GetIfAllPlayedOnce() bool {
+	i.allPlayedMutex.Lock()
+	val := i.allPlayedOnce
+	i.allPlayedMutex.Unlock()
+	return val
+}
+
+// SetIfAllPlayedOnce sets if everyone played once
+func (i *Instance) SetIfAllPlayedOnce() {
+	i.allPlayedMutex.Lock()
+	i.allPlayedOnce = true
+	i.allPlayedMutex.Unlock()
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
