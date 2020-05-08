@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/chainreaction/datastore"
+	"github.com/chainreaction/helpers"
 	"github.com/chainreaction/models"
 	"github.com/chainreaction/simulate"
 	"github.com/chainreaction/utils"
@@ -67,9 +68,9 @@ func StartGamePlay(c *gin.Context) {
 
 	player.InitMutex()
 
-	go gInstance.BroadcastMoves()
-	go gInstance.BroadcastBoardUpdates()
-	go gInstance.BroadcastWinner()
+	go helpers.BroadcastMoves(gInstance)
+	go helpers.BroadcastBoardUpdates(gInstance)
+	go helpers.BroadcastWinner(gInstance)
 
 	for {
 		if gInstance.GetCurrentActivePlayers() != gInstance.PlayersCount {

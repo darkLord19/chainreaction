@@ -1,10 +1,8 @@
 package models
 
 import (
-	"log"
 	"time"
 
-	"github.com/chainreaction/constants"
 	"github.com/chainreaction/utils"
 )
 
@@ -49,6 +47,55 @@ func (i *Instance) InitGameInstanceMutexes() {
 	i.allPlayedMutex.Unlock()
 }
 
+// HandleMutexes handles mutex lock unlock for outside the package
+func (i *Instance) HandleMutexes(name string, op string) {
+	switch op {
+	case "lock":
+		switch name {
+		case "bbcast":
+			i.bbcastMutex.Lock()
+			break
+		case "allPlayed":
+			i.allPlayedMutex.Lock()
+			break
+		case "currActive":
+			i.currActivePlayersMutex.Lock()
+			break
+		case "winnerBcast":
+			i.winnerBcastMutex.Lock()
+			break
+		}
+		break
+	case "unlock":
+		switch name {
+		case "bbcast":
+			i.bbcastMutex.Unlock()
+			break
+		case "allPlayed":
+			i.allPlayedMutex.Unlock()
+			break
+		case "currActive":
+			i.currActivePlayersMutex.Unlock()
+			break
+		case "winnerBcast":
+			i.winnerBcastMutex.Unlock()
+			break
+		}
+		break
+	}
+}
+
+// ReadUnsafe reads values directly without locking
+func (i *Instance) ReadUnsafe(name string) interface{} {
+	switch name {
+	case "didWin":
+		return i.didWin
+	case "bbcastFlag":
+		return i.broadcastBoardFlag
+	}
+	return nil
+}
+
 // InitChannel initializes brodcast channel
 func (i *Instance) InitChannel() {
 	i.getMove = make(chan Move)
@@ -57,6 +104,11 @@ func (i *Instance) InitChannel() {
 // WriteToMoveCh return brodcast channel
 func (i *Instance) WriteToMoveCh(m Move) {
 	i.getMove <- m
+}
+
+// ReadMoveChan reads value from move chan
+func (i *Instance) ReadMoveChan(m *Move) {
+	*m = <-i.getMove
 }
 
 // SetBroadcastBoardFlag sets broadcast board state flag safely
@@ -139,60 +191,4 @@ func (i *Instance) SetWinner(p *Player) {
 	i.didWin = true
 	i.Winner = p
 	i.winnerBcastMutex.Unlock()
-}
-
-// BroadcastMoves brodcasts move to all players
-func (i *Instance) BroadcastMoves() {
-	for {
-		move := <-i.getMove
-		for _, p := range i.AllPlayers {
-			move.MsgType = constants.MoveBcastMsg
-			err := p.writeToWebsocket(move)
-			if err != nil {
-				log.Printf("error: %v", err)
-				p.wsConnection.Close()
-				p.wsConnection = nil
-			}
-		}
-	}
-}
-
-// BroadcastBoardUpdates broadcasts board updates to users
-func (i *Instance) BroadcastBoardUpdates() {
-	for {
-		i.bbcastMutex.Lock()
-		if i.broadcastBoardFlag {
-			for _, p := range i.AllPlayers {
-				msg := NewState{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
-				err := p.writeToWebsocket(msg)
-				if err != nil {
-					log.Printf("error: %v", err)
-					p.wsConnection.Close()
-					p.wsConnection = nil
-				}
-			}
-			i.broadcastBoardFlag = false
-		}
-		i.bbcastMutex.Unlock()
-	}
-}
-
-// BroadcastWinner broadcasts winner to users
-func (i *Instance) BroadcastWinner() {
-	for {
-		i.winnerBcastMutex.Lock()
-		if i.didWin {
-			for _, p := range i.AllPlayers {
-				msg := Winner{constants.UserWonMsg, *i.Winner}
-				err := p.writeToWebsocket(msg)
-				if err != nil {
-					log.Printf("error: %v", err)
-					p.wsConnection.Close()
-					p.wsConnection = nil
-				}
-			}
-			i.IsOver = true
-		}
-		i.winnerBcastMutex.Unlock()
-	}
 }

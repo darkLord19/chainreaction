@@ -23,11 +23,18 @@ func (p *Player) InitMutex() {
 	p.mutex.Unlock()
 }
 
-func (p *Player) writeToWebsocket(val interface{}) error {
+// WriteToWebsocket writes to player's websocket
+func (p *Player) WriteToWebsocket(val interface{}) error {
 	p.mutex.Lock()
 	err := p.wsConnection.WriteJSON(val)
 	p.mutex.Unlock()
 	return err
+}
+
+// CleanupWs closes websocket connection and frees memory for wsConnection
+func (p *Player) CleanupWs() {
+	p.wsConnection.Close()
+	p.wsConnection = nil
 }
 
 // SetWsConnection sets ws connection field of Player
@@ -40,7 +47,7 @@ func (p *Player) NotifyIndividual(val string) {
 	tmp := Err{}
 	tmp.MsgType = constants.InvalidMoveMsg
 	tmp.ErrStr = val
-	err := p.writeToWebsocket(tmp)
+	err := p.WriteToWebsocket(tmp)
 	if err != nil {
 		log.Printf("error: %v", err)
 		p.wsConnection.Close()
