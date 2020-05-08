@@ -98,7 +98,7 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 
-	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, nil})
+	gInstance.AllPlayers = append(gInstance.AllPlayers, game.Player{username, color, nil, nil})
 
 	ret = gin.H{"Success": "You have joined the game mothafucka", "game instance": gInstance,
 		"user": gin.H{"username": username, "color": color}}
@@ -159,6 +159,8 @@ func StartGamePlay(c *gin.Context) {
 	defer ws.Close()
 
 	player.WsConnection = ws
+
+	player.InitMutex()
 
 	go gInstance.BroadcastMoves()
 	go gInstance.BroadcastBoardUpdates()
