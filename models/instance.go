@@ -14,7 +14,7 @@ type Instance struct {
 	PlayersCount           int `json:"players_count" form:"players_count"`
 	CurrentTurn            int `json:"current_turn"`
 	AllPlayers             []Player
-	Winner                 Player
+	Winner                 *Player
 	RoomName               string
 	Dimension              int `json:"dimension" form:"dimension"`
 	CreatedOn              time.Time
@@ -26,6 +26,7 @@ type Instance struct {
 	didWin                 bool
 	bbcastMutex            utils.Mutex //bbcastMutex protects read write to broadcastBoardFlag
 	currActivePlayersMutex utils.Mutex //currActivePlayersMutex protects read write to CurrentActivePlayers
+	winnerBcastMutex       utils.Mutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
 }
 
 // Pixel represents current state of one pixel on board
@@ -38,8 +39,10 @@ type Pixel struct {
 func (i *Instance) InitGameInstanceMutexes() {
 	i.bbcastMutex = make(utils.Mutex, 1)
 	i.currActivePlayersMutex = make(utils.Mutex, 1)
+	i.winnerBcastMutex = make(utils.Mutex, 1)
 	i.currActivePlayersMutex.Unlock()
 	i.bbcastMutex.Unlock()
+	i.winnerBcastMutex.Unlock()
 }
 
 // InitChannel initializes brodcast channel
@@ -111,6 +114,14 @@ func (i *Instance) CheckIfUserNameClaimed(username string) bool {
 	return false
 }
 
+// SetWinner sets winner of game
+func (i *Instance) SetWinner(p *Player) {
+	i.winnerBcastMutex.Lock()
+	i.didWin = true
+	i.Winner = p
+	i.winnerBcastMutex.Unlock()
+}
+
 // BroadcastMoves brodcasts move to all players
 func (i *Instance) BroadcastMoves() {
 	for {
@@ -150,9 +161,10 @@ func (i *Instance) BroadcastBoardUpdates() {
 // BroadcastWinner broadcasts winner to users
 func (i *Instance) BroadcastWinner() {
 	for {
+		i.winnerBcastMutex.Lock()
 		if i.didWin {
 			for _, p := range i.AllPlayers {
-				msg := Winner{constants.UserWonMsg, i.Winner}
+				msg := Winner{constants.UserWonMsg, *i.Winner}
 				err := p.writeToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
@@ -160,7 +172,8 @@ func (i *Instance) BroadcastWinner() {
 					p.wsConnection = nil
 				}
 			}
-			i.didWin = false
+			i.IsOver = true
 		}
+		i.winnerBcastMutex.Unlock()
 	}
 }

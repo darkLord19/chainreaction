@@ -69,9 +69,25 @@ func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *ut
 	}
 }
 
+func checkIfWon(board *[][]models.Pixel, color string) bool {
+	won := true
+	dim := len(*board)
+	for i := 0; i < dim; i++ {
+		for j := 0; j < dim; j++ {
+			if (*board)[i][j].DotCount != 0 {
+				if (*board)[i][j].Color != color {
+					won = false
+				}
+			}
+		}
+	}
+	return won
+}
+
 // ChainReaction is called after each move and spreads the orbs on the board
 func ChainReaction(modelsInstance *models.Instance, move models.Move) error {
 	board := modelsInstance.Board
+	player := modelsInstance.GetPlayerByID(move.PlayerUserName)
 
 	x, y := move.XPos, move.YPos
 
@@ -80,13 +96,19 @@ func ChainReaction(modelsInstance *models.Instance, move models.Move) error {
 	}
 
 	if board[x][y].DotCount != 0 &&
-		board[x][y].Color != modelsInstance.GetPlayerByID(move.PlayerUserName).Color {
+		board[x][y].Color != player.Color {
 		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[x][y].Color)
 	}
 
-	updateBoard(&board, x, y, modelsInstance.GetPlayerByID(move.PlayerUserName).Color)
+	updateBoard(&board, x, y, player.Color)
+
+	won := checkIfWon(&board, player.Color)
 
 	modelsInstance.SetBroadcastBoardFlag(true)
+
+	if won {
+		modelsInstance.SetWinner(player)
+	}
 
 	return nil
 }
