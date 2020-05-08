@@ -142,7 +142,7 @@ func (i *Instance) BroadcastBoardUpdates() {
 					p.wsConnection = nil
 				}
 			}
-			i.broadcastBoardFlag = false
+			i.SetBroadcastBoardFlag(false)
 		}
 	}
 }
@@ -160,7 +160,7 @@ func (i *Instance) BroadcastWinner() {
 					p.wsConnection = nil
 				}
 			}
-			i.SetBroadcastBoardFlag(false)
+			i.didWin = false
 		}
 	}
 }
