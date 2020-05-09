@@ -1,9 +1,9 @@
 package models
 
 import (
+	"fmt"
+	"sync"
 	"time"
-
-	"github.com/chainreaction/utils"
 )
 
 // Instance represents a single game instance
@@ -23,86 +23,16 @@ type Instance struct {
 	broadcastBoardFlag     bool
 	didWin                 bool
 	allPlayedOnce          bool
-	allPlayedMutex         utils.Mutex //allPlayedMutex protects read write to allPlayedOnce
-	bbcastMutex            utils.Mutex //bbcastMutex protects read write to broadcastBoardFlag
-	currActivePlayersMutex utils.Mutex //currActivePlayersMutex protects read write to CurrentActivePlayers
-	winnerBcastMutex       utils.Mutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
+	allPlayedMutex         sync.Mutex //allPlayedMutex protects read write to allPlayedOnce
+	bbcastMutex            sync.Mutex //bbcastMutex protects read write to broadcastBoardFlag
+	currActivePlayersMutex sync.Mutex //currActivePlayersMutex protects read write to CurrentActivePlayers
+	winnerBcastMutex       sync.Mutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
 }
 
 // Pixel represents current state of one pixel on board
 type Pixel struct {
 	DotCount int    `json:"dot_count"`
 	Color    string `json:"color"`
-}
-
-// InitGameInstanceMutexes initializes bbcastmutex
-func (i *Instance) InitGameInstanceMutexes() {
-	i.bbcastMutex = make(utils.Mutex, 1)
-	i.currActivePlayersMutex = make(utils.Mutex, 1)
-	i.winnerBcastMutex = make(utils.Mutex, 1)
-	i.allPlayedMutex = make(utils.Mutex, 1)
-	i.currActivePlayersMutex.Unlock()
-	i.bbcastMutex.Unlock()
-	i.winnerBcastMutex.Unlock()
-	i.allPlayedMutex.Unlock()
-}
-
-// HandleMutexes handles mutex lock unlock for outside the package
-func (i *Instance) HandleMutexes(name string, op string) {
-	switch op {
-	case "lock":
-		switch name {
-		case "bbcast":
-			i.bbcastMutex.Lock()
-			break
-		case "allPlayed":
-			i.allPlayedMutex.Lock()
-			break
-		case "currActive":
-			i.currActivePlayersMutex.Lock()
-			break
-		case "winnerBcast":
-			i.winnerBcastMutex.Lock()
-			break
-		}
-		break
-	case "unlock":
-		switch name {
-		case "bbcast":
-			i.bbcastMutex.Unlock()
-			break
-		case "allPlayed":
-			i.allPlayedMutex.Unlock()
-			break
-		case "currActive":
-			i.currActivePlayersMutex.Unlock()
-			break
-		case "winnerBcast":
-			i.winnerBcastMutex.Unlock()
-			break
-		}
-		break
-	}
-}
-
-// ReadUnsafe reads values directly without locking
-func (i *Instance) ReadUnsafe(name string) interface{} {
-	switch name {
-	case "didWin":
-		return i.didWin
-	case "bbcastFlag":
-		return i.broadcastBoardFlag
-	}
-	return nil
-}
-
-// WriteUnsafe writes values directly without locking
-func (i *Instance) WriteUnsafe(name string, val interface{}) {
-	switch name {
-	case "bbcast":
-		i.broadcastBoardFlag = val.(bool)
-		break
-	}
 }
 
 // InitChannel initializes brodcast channel
@@ -122,9 +52,24 @@ func (i *Instance) ReadMoveChan(m *MoveMsg) {
 
 // SetBroadcastBoardFlag sets broadcast board state flag safely
 func (i *Instance) SetBroadcastBoardFlag(val bool) {
+	fmt.Println("mtx from set ", &i.bbcastMutex)
+	fmt.Println("set in")
 	i.bbcastMutex.Lock()
 	i.broadcastBoardFlag = val
+	fmt.Println("from set: ", i.broadcastBoardFlag)
 	i.bbcastMutex.Unlock()
+	fmt.Println("set out")
+}
+
+// GetBroadcastBoardFlag sets broadcast board state flag safely
+func (i *Instance) GetBroadcastBoardFlag() bool {
+	fmt.Println("mtx from get ", &i.bbcastMutex)
+	fmt.Println("get in")
+	i.bbcastMutex.Lock()
+	defer i.bbcastMutex.Unlock()
+	fmt.Println("from get: ", i.broadcastBoardFlag)
+	fmt.Println("get out")
+	return i.broadcastBoardFlag
 }
 
 // GetIfAllPlayedOnce returns if all player played once at least
@@ -139,6 +84,21 @@ func (i *Instance) GetIfAllPlayedOnce() bool {
 func (i *Instance) SetIfAllPlayedOnce() {
 	i.allPlayedMutex.Lock()
 	i.allPlayedOnce = true
+	i.allPlayedMutex.Unlock()
+}
+
+// GetIfSomeoneWon returns if someone won
+func (i *Instance) GetIfSomeoneWon() bool {
+	i.allPlayedMutex.Lock()
+	val := i.didWin
+	i.allPlayedMutex.Unlock()
+	return val
+}
+
+// SetIfSomeoneWon sets didWin
+func (i *Instance) SetIfSomeoneWon(val bool) {
+	i.allPlayedMutex.Lock()
+	i.didWin = val
 	i.allPlayedMutex.Unlock()
 }
 

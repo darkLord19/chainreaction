@@ -1,7 +1,8 @@
 package models
 
 import (
-	"github.com/chainreaction/utils"
+	"sync"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -9,14 +10,8 @@ import (
 type Player struct {
 	UserName     string
 	Color        string
-	mutex        utils.Mutex
+	mutex        *sync.Mutex
 	wsConnection *websocket.Conn
-}
-
-// InitMutex initializes mutex
-func (p *Player) InitMutex() {
-	p.mutex = make(utils.Mutex, 1)
-	p.mutex.Unlock()
 }
 
 // WriteToWebsocket writes to player's websocket
@@ -29,11 +24,15 @@ func (p *Player) WriteToWebsocket(val interface{}) error {
 
 // CleanupWs closes websocket connection and frees memory for wsConnection
 func (p *Player) CleanupWs() {
+	p.mutex.Lock()
 	p.wsConnection.Close()
 	p.wsConnection = nil
+	p.mutex.Unlock()
 }
 
 // SetWsConnection sets ws connection field of Player
 func (p *Player) SetWsConnection(ws *websocket.Conn) {
+	p.mutex.Lock()
 	p.wsConnection = ws
+	p.mutex.Unlock()
 }

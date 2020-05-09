@@ -40,7 +40,6 @@ func CreateNewGame(c *gin.Context) {
 		gameInstance.Board[i] = make([]models.Pixel, gameInstance.Dimension)
 	}
 	gameInstance.InitChannel()
-	gameInstance.InitGameInstanceMutexes()
 	datastore.AddGameInstance(&gameInstance)
 	ret = gin.H{"GameRoomName": gameInstance.RoomName}
 	c.JSON(http.StatusCreated, ret)

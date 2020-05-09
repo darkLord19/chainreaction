@@ -27,9 +27,7 @@ func BroadcastMoves(i *models.Instance) {
 // BroadcastBoardUpdates broadcasts board updates to users
 func BroadcastBoardUpdates(i *models.Instance) {
 	for {
-		i.HandleMutexes("bbcast", "lock")
-		val := i.ReadUnsafe("bbcastFlag")
-		if val.(bool) {
+		if i.GetBroadcastBoardFlag() {
 			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
@@ -38,24 +36,18 @@ func BroadcastBoardUpdates(i *models.Instance) {
 					i.AllPlayers[x].CleanupWs()
 				}
 			}
-			i.WriteUnsafe("bbcast", false)
+			i.SetBroadcastBoardFlag(false)
 		}
-		i.HandleMutexes("bbcast", "unlock")
 	}
 }
 
 // BroadcastWinner broadcasts winner to users
 func BroadcastWinner(i *models.Instance) {
 	for {
-		i.HandleMutexes("winnerBcast", "lock")
-		val := i.ReadUnsafe("didWin")
-		if val == nil {
-			continue
-		}
-		if val.(bool) {
+		if i.GetIfSomeoneWon() {
 			for x := range i.AllPlayers {
 				msg := models.WinnerMsg{constants.UserWonMsg, *i.Winner}
-				err := i.AllPlayers[x].WriteToWebsocket(msg)
+				err := (i.AllPlayers[x]).WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					i.AllPlayers[x].CleanupWs()
@@ -63,6 +55,5 @@ func BroadcastWinner(i *models.Instance) {
 			}
 			i.IsOver = true
 		}
-		i.HandleMutexes("winnerBcast", "unlock")
 	}
 }

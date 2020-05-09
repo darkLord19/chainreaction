@@ -44,7 +44,7 @@ func Cleanup() {
 	for {
 		time.Sleep(1 * time.Minute)
 		for k, v := range activeGameInstances {
-			if v.ExpiresOn.Sub(time.Now().UTC()) < 0 || v.IsOver {
+			if v.ExpiresOn.Sub(time.Now().UTC()) < 0 && v.IsOver {
 				delete(activeGameInstances, k)
 			}
 		}
