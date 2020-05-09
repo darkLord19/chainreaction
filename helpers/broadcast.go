@@ -12,12 +12,12 @@ func BroadcastMoves(i *models.Instance) {
 	var move models.MoveMsg
 	for {
 		i.ReadMoveChan(&move)
-		for _, p := range i.AllPlayers {
+		for x := range i.AllPlayers {
 			move.MsgType = constants.MoveBcastMsg
-			err := p.WriteToWebsocket(move)
+			err := i.AllPlayers[x].WriteToWebsocket(move)
 			if err != nil {
 				log.Printf("error: %v", err)
-				p.CleanupWs()
+				i.AllPlayers[x].CleanupWs()
 			}
 		}
 	}
@@ -32,12 +32,12 @@ func BroadcastBoardUpdates(i *models.Instance) {
 			continue
 		}
 		if val.(bool) {
-			for _, p := range i.AllPlayers {
+			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
-				err := p.WriteToWebsocket(msg)
+				err := i.AllPlayers[x].WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
-					p.CleanupWs()
+					i.AllPlayers[x].CleanupWs()
 				}
 			}
 			i.WriteUnsafe("bbcast", false)
@@ -55,12 +55,12 @@ func BroadcastWinner(i *models.Instance) {
 			continue
 		}
 		if val.(bool) {
-			for _, p := range i.AllPlayers {
+			for x := range i.AllPlayers {
 				msg := models.WinnerMsg{constants.UserWonMsg, *i.Winner}
-				err := p.WriteToWebsocket(msg)
+				err := i.AllPlayers[x].WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
-					p.CleanupWs()
+					i.AllPlayers[x].CleanupWs()
 				}
 			}
 			i.IsOver = true
