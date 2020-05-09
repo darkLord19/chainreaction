@@ -11,6 +11,9 @@ import (
 func BroadcastMoves(i *models.Instance) {
 	var move models.MoveMsg
 	for {
+		if i.IsOver {
+			continue
+		}
 		i.ReadMoveChan(&move)
 		move.Color = i.GetPlayerByID(move.PlayerUserName).Color
 		for x := range i.AllPlayers {
@@ -27,7 +30,7 @@ func BroadcastMoves(i *models.Instance) {
 // BroadcastBoardUpdates broadcasts board updates to users
 func BroadcastBoardUpdates(i *models.Instance) {
 	for {
-		if i.GetBroadcastBoardFlag() {
+		if i.GetBroadcastBoardFlag() && !i.IsOver {
 			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
@@ -44,7 +47,7 @@ func BroadcastBoardUpdates(i *models.Instance) {
 // BroadcastWinner broadcasts winner to users
 func BroadcastWinner(i *models.Instance) {
 	for {
-		if i.GetIfSomeoneWon() {
+		if i.GetIfSomeoneWon() && !i.IsOver {
 			for x := range i.AllPlayers {
 				msg := models.WinnerMsg{constants.UserWonMsg, *i.Winner}
 				err := (i.AllPlayers[x]).WriteToWebsocket(msg)
