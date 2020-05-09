@@ -12,6 +12,7 @@ func BroadcastMoves(i *models.Instance) {
 	var move models.MoveMsg
 	for {
 		i.ReadMoveChan(&move)
+		move.Color = i.GetPlayerByID(move.PlayerUserName).Color
 		for x := range i.AllPlayers {
 			move.MsgType = constants.MoveBcastMsg
 			err := i.AllPlayers[x].WriteToWebsocket(move)

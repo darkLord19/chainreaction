@@ -5,6 +5,7 @@ type MoveMsg struct {
 	MsgType        int    `json:"msg_type"`
 	XPos           int    `json:"xpos"`
 	YPos           int    `json:"ypos"`
+	Color          string `json:"color"`
 	PlayerUserName string `json:"player_username"`
 }
 
