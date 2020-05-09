@@ -28,9 +28,6 @@ func BroadcastBoardUpdates(i *models.Instance) {
 	for {
 		i.HandleMutexes("bbcast", "lock")
 		val := i.ReadUnsafe("bbcastFlag")
-		if val == nil {
-			continue
-		}
 		if val.(bool) {
 			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
