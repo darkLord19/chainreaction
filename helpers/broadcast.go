@@ -22,16 +22,15 @@ func BroadcastMoves(i *models.Instance) {
 				i.AllPlayers[x].CleanupWs()
 			}
 		}
-		if i.GetIfSomeoneWon() {
-			return
-		}
 	}
 }
 
 // BroadcastBoardUpdates broadcasts board updates to users
 func BroadcastBoardUpdates(i *models.Instance) {
+	var val bool
 	for {
-		if i.GetBroadcastBoardFlag() {
+		i.ReadBcastBoardChan(&val)
+		if val {
 			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
@@ -40,18 +39,16 @@ func BroadcastBoardUpdates(i *models.Instance) {
 					i.AllPlayers[x].CleanupWs()
 				}
 			}
-			i.SetBroadcastBoardFlag(false)
-		}
-		if i.GetIfSomeoneWon() {
-			return
 		}
 	}
 }
 
 // BroadcastWinner broadcasts winner to users
 func BroadcastWinner(i *models.Instance) {
+	var val bool
 	for {
-		if i.GetIfSomeoneWon() {
+		i.ReadDidWinChan(&val)
+		if val {
 			for x := range i.AllPlayers {
 				winner := i.GetWinner()
 				msg := models.WinnerMsg{constants.UserWonMsg, winner.UserName, winner.Color}

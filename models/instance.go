@@ -18,15 +18,13 @@ type Instance struct {
 	ExpiresOn              time.Time
 	IsOver                 bool
 	currentActivePlayers   int
-	getMove                chan MoveMsg
-	broadcastBoardFlag     bool
-	didWin                 bool
 	allPlayedOnce          bool
-	didWinMutex            sync.RWMutex //winnerMutex protects read write to didWin
-	allPlayedMutex         sync.RWMutex //allPlayedMutex protects read write to allPlayedOnce
-	bbcastMutex            sync.RWMutex //bbcastMutex protects read write to broadcastBoardFlag
+	getMove                chan MoveMsg
+	broadcastBoard         chan bool
+	didWin                 chan bool
+	winnerMutex            sync.RWMutex //winnerMutex protects read write to Winner
+	allPlayedMutex         sync.RWMutex //allPlayedMutex protects allPlayedOnce
 	currActivePlayersMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
-	winnerBcastMutex       sync.RWMutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
 }
 
 // Pixel represents current state of one pixel on board
@@ -46,6 +44,8 @@ func (i *Instance) Init(name string) {
 		i.Board[a] = make([]Pixel, i.Dimension)
 	}
 	i.getMove = make(chan MoveMsg)
+	i.broadcastBoard = make(chan bool)
+	i.didWin = make(chan bool)
 }
 
 // WriteToMoveCh return brodcast channel
@@ -58,55 +58,24 @@ func (i *Instance) ReadMoveChan(m *MoveMsg) {
 	*m = <-i.getMove
 }
 
-// SetBroadcastBoardFlag sets broadcast board state flag safely
-func (i *Instance) SetBroadcastBoardFlag(val bool) {
-	// fmt.Println("mtx from set ", &i.bbcastMutex)
-	// fmt.Println("set in")
-	i.bbcastMutex.Lock()
-	i.broadcastBoardFlag = val
-	// fmt.Println("from set: ", i.broadcastBoardFlag)
-	i.bbcastMutex.Unlock()
-	// fmt.Println("set out")
+// WriteDidWinChan return brodcast channel
+func (i *Instance) WriteDidWinChan(val bool) {
+	i.didWin <- val
 }
 
-// GetBroadcastBoardFlag sets broadcast board state flag safely
-func (i *Instance) GetBroadcastBoardFlag() bool {
-	// fmt.Println("mtx from get ", &i.bbcastMutex)
-	// fmt.Println("get in")
-	i.bbcastMutex.Lock()
-	defer i.bbcastMutex.Unlock()
-	// fmt.Println("from get: ", i.broadcastBoardFlag)
-	// fmt.Println("get out")
-	return i.broadcastBoardFlag
+// ReadDidWinChan reads value from move chan
+func (i *Instance) ReadDidWinChan(val *bool) {
+	*val = <-i.didWin
 }
 
-// GetIfAllPlayedOnce returns if all player played once at least
-func (i *Instance) GetIfAllPlayedOnce() bool {
-	i.allPlayedMutex.Lock()
-	val := i.allPlayedOnce
-	i.allPlayedMutex.Unlock()
-	return val
+// WriteBcastBoardChan return brodcast channel
+func (i *Instance) WriteBcastBoardChan(val bool) {
+	i.broadcastBoard <- val
 }
 
-// SetIfAllPlayedOnce sets if everyone played once
-func (i *Instance) SetIfAllPlayedOnce() {
-	i.allPlayedMutex.Lock()
-	i.allPlayedOnce = true
-	i.allPlayedMutex.Unlock()
-}
-
-// GetIfSomeoneWon returns if someone won
-func (i *Instance) GetIfSomeoneWon() bool {
-	i.didWinMutex.Lock()
-	defer i.didWinMutex.Unlock()
-	return i.didWin
-}
-
-// SetIfSomeoneWon sets didWin
-func (i *Instance) SetIfSomeoneWon(val bool) {
-	i.didWinMutex.Lock()
-	i.didWin = val
-	i.didWinMutex.Unlock()
+// ReadBcastBoardChan reads value from move chan
+func (i *Instance) ReadBcastBoardChan(val *bool) {
+	*val = <-i.broadcastBoard
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
@@ -153,15 +122,29 @@ func (i *Instance) GetPlayerByUsername(username string) (*Player, bool) {
 
 // SetWinner sets winner of game
 func (i *Instance) SetWinner(p *Player) {
-	i.winnerBcastMutex.Lock()
-	i.didWin = true
+	i.winnerMutex.Lock()
+	i.didWin <- true
 	i.Winner = p
-	i.winnerBcastMutex.Unlock()
+	i.winnerMutex.Unlock()
 }
 
 // GetWinner sets winner of game
 func (i *Instance) GetWinner() *Player {
-	i.winnerBcastMutex.Lock()
-	defer i.winnerBcastMutex.Unlock()
+	i.winnerMutex.Lock()
+	defer i.winnerMutex.Unlock()
 	return i.Winner
+}
+
+// SetIfAllPlayedOnce sets if everyone played once
+func (i *Instance) SetIfAllPlayedOnce(val bool) {
+	i.allPlayedMutex.Lock()
+	i.allPlayedOnce = val
+	i.allPlayedMutex.Unlock()
+}
+
+// GetIfAllPlayedOnce sets if everyone played once
+func (i *Instance) GetIfAllPlayedOnce() bool {
+	i.allPlayedMutex.Lock()
+	defer i.allPlayedMutex.Unlock()
+	return i.allPlayedOnce
 }

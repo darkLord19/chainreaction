@@ -10,6 +10,6 @@ func CheckIfEveryonePlayed(gI *models.Instance) bool {
 // SetIfAllPlayedOnce checks if this is last player in first turn and sets variable accordingly
 func SetIfAllPlayedOnce(gI *models.Instance, uname string) {
 	if gI.AllPlayers[gI.PlayersCount-1].UserName == uname {
-		gI.SetIfAllPlayedOnce()
+		gI.SetIfAllPlayedOnce(true)
 	}
 }
