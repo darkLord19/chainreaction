@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -26,9 +27,10 @@ func GetAvailableColors(c *gin.Context) {
 	}
 	var clrs []string
 	for k, v := range gInstance.AvailableColors {
-		if !v {
+		if v {
 			clrs = append(clrs, k)
 		}
 	}
+	fmt.Println(clrs, gInstance)
 	c.JSON(http.StatusOK, gin.H{"colors": clrs})
 }

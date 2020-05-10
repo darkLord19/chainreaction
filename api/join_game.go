@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -41,6 +42,7 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 	color := c.Query("color")
+	fmt.Println(color)
 	if color == "" {
 		ret = gin.H{"Error": "color cannot be empty"}
 		log.Println(ret)
@@ -66,6 +68,8 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusForbidden, ret)
 		return
 	}
+
+	gInstance.AvailableColors[color] = false
 
 	p := models.Player{}
 	p.UserName = username

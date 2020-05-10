@@ -3,6 +3,8 @@ package models
 import (
 	"sync"
 	"time"
+
+	"github.com/chainreaction/constants"
 )
 
 // Instance represents a single game instance
@@ -44,6 +46,9 @@ func (i *Instance) Init(name string) {
 	for a := 0; a < i.Dimension; a++ {
 		i.Board[a] = make([]Pixel, i.Dimension)
 	}
+	for _, c := range constants.Colors {
+		i.AvailableColors[c] = true
+	}
 	i.getMove = make(chan MoveMsg)
 	i.broadcastBoard = make(chan bool)
 	i.didWin = make(chan bool)
@@ -82,7 +87,7 @@ func (i *Instance) ReadBcastBoardChan(val *bool) {
 // CheckIfColorSelected checks if given color is already selected by another player
 func (i *Instance) CheckIfColorSelected(color string) bool {
 	_, v := i.AvailableColors[color]
-	return v
+	return !v
 }
 
 // CheckIfValidColor checks if recvd color is valid
