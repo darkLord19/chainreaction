@@ -34,8 +34,16 @@ type Pixel struct {
 	Color    string `json:"color"`
 }
 
-// InitChannel initializes brodcast channel
-func (i *Instance) InitChannel() {
+// Init initializes game instance
+func (i *Instance) Init(name string) {
+	i.CreatedOn = time.Now().UTC()
+	i.ExpiresOn = i.CreatedOn.Add(time.Minute * time.Duration(25))
+	i.CurrentTurn = 0
+	i.Board = make([][]Pixel, i.Dimension)
+	i.RoomName = name
+	for a := 0; a < i.Dimension; a++ {
+		i.Board[a] = make([]Pixel, i.Dimension)
+	}
 	i.getMove = make(chan MoveMsg)
 }
 
