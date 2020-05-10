@@ -36,17 +36,22 @@ func JoinExistingGame(c *gin.Context) {
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
 	}
+	color := c.Query("color")
+	if color == "" {
+		ret = gin.H{"Error": "color cannot be empty"}
+		log.Println(ret)
+		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+	}
 	_, pExists := gInstance.GetPlayerByUsername(username)
 	if pExists {
 		ret = gin.H{"Error": "Username `" + username + "` is already selected by someone else"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusForbidden, ret)
 	}
-	color := c.Query("color")
-	if color == "" {
-		ret = gin.H{"Error": "Game is already full."}
+	if gInstance.CheckIfValidColor(color) {
+		ret = gin.H{"Error": "Color `" + color + "` is already selected by someone else"}
 		log.Println(ret)
-		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		c.AbortWithStatusJSON(http.StatusForbidden, ret)
 	}
 	if gInstance.CheckIfColorSelected(color) {
 		ret = gin.H{"Error": "Color `" + color + "` is already selected by someone else"}

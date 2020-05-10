@@ -81,8 +81,14 @@ func (i *Instance) ReadBcastBoardChan(val *bool) {
 
 // CheckIfColorSelected checks if given color is already selected by another player
 func (i *Instance) CheckIfColorSelected(color string) bool {
-	for x := range i.AllPlayers {
-		if i.AllPlayers[x].Color == color {
+	_, v := i.AvailableColors[color]
+	return v
+}
+
+// CheckIfValidColor checks if recvd color is valid
+func (i *Instance) CheckIfValidColor(color string) bool {
+	for k := range i.AvailableColors {
+		if k == color {
 			return true
 		}
 	}
