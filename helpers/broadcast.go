@@ -56,7 +56,8 @@ func BroadcastWinner(i *models.Instance) {
 		}
 		if i.GetIfSomeoneWon() {
 			for x := range i.AllPlayers {
-				msg := models.WinnerMsg{constants.UserWonMsg, i.Winner.UserName, i.Winner.Color}
+				winner := i.GetWinner()
+				msg := models.WinnerMsg{constants.UserWonMsg, winner.UserName, winner.Color}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)

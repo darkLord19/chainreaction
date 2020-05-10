@@ -158,3 +158,10 @@ func (i *Instance) SetWinner(p *Player) {
 	i.Winner = p
 	i.winnerBcastMutex.Unlock()
 }
+
+// GetWinner sets winner of game
+func (i *Instance) GetWinner() *Player {
+	i.winnerBcastMutex.Lock()
+	defer i.winnerBcastMutex.Unlock()
+	return i.Winner
+}
