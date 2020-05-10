@@ -23,12 +23,14 @@ func StartGamePlay(c *gin.Context) {
 		ret = gin.H{"Error": "Please provide a game instance id"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		return
 	}
 	uname := strings.ToLower(c.Query("username"))
 	if uname == "" {
 		ret = gin.H{"Error": "username cannot be empty."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		return
 	}
 
 	gInstance, exists := datastore.GetGameInstance(roomname)
@@ -37,12 +39,14 @@ func StartGamePlay(c *gin.Context) {
 		ret = gin.H{"Error": "Game is already full."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		return
 	}
 
 	if !exists {
 		ret = gin.H{"Error": "Wrong room name"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		return
 	}
 
 	player, _ := gInstance.GetPlayerByUsername(uname)
@@ -51,6 +55,7 @@ func StartGamePlay(c *gin.Context) {
 		ret = gin.H{"Error": "No such user exists in this game"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		return
 	}
 
 	gInstance.IncCurrentActivePlayers()
@@ -58,6 +63,7 @@ func StartGamePlay(c *gin.Context) {
 	ws, err := utils.WsUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	defer ws.Close()
 

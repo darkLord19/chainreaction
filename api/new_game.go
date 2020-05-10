@@ -18,11 +18,13 @@ func CreateNewGame(c *gin.Context) {
 		ret = gin.H{"Error": "Bad request"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
+		return
 	}
 
 	err := validators.ValidateInstance(&gameInstance)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
 	}
 
 	gameInstance.Init(datastore.GetNewUniqueRoomName())
