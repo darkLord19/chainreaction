@@ -40,7 +40,8 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
 		return
 	}
-	if gInstance.CheckIfUserNameClaimed(username) {
+	_, pExists := gInstance.GetPlayerByUsername(username)
+	if pExists {
 		ret = gin.H{"Error": "Username `" + username + "` is already selected by someone else"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusForbidden, ret)

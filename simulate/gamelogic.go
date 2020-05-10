@@ -90,7 +90,11 @@ func checkIfWon(gI *models.Instance, color string) bool {
 // ChainReaction is called after each move and spreads the orbs on the board
 func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
 	board := gameInstance.Board
-	player := gameInstance.GetPlayerByID(move.PlayerUserName)
+	player, exists := gameInstance.GetPlayerByUsername(move.PlayerUserName)
+
+	if !exists {
+		return fmt.Errorf("Username doesn't exists for this game %v", move.PlayerUserName)
+	}
 
 	x, y := move.XPos, move.YPos
 

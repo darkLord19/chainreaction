@@ -103,8 +103,8 @@ func (i *Instance) SetIfSomeoneWon(val bool) {
 
 // CheckIfColorSelected checks if given color is already selected by another player
 func (i *Instance) CheckIfColorSelected(color string) bool {
-	for _, p := range i.AllPlayers {
-		if p.Color == color {
+	for x := range i.AllPlayers {
+		if i.AllPlayers[x].Color == color {
 			return true
 		}
 	}
@@ -133,24 +133,14 @@ func (i *Instance) GetCurrentActivePlayers() int {
 	return val
 }
 
-// GetPlayerByID returns Player struct from instance id
-func (i *Instance) GetPlayerByID(username string) *Player {
+// GetPlayerByUsername returns Player struct from instance id
+func (i *Instance) GetPlayerByUsername(username string) (*Player, bool) {
 	for a := range i.AllPlayers {
 		if i.AllPlayers[a].UserName == username {
-			return &i.AllPlayers[a]
+			return &i.AllPlayers[a], true
 		}
 	}
-	return nil
-}
-
-// CheckIfUserNameClaimed checks if given username is claimed by another user or not
-func (i *Instance) CheckIfUserNameClaimed(username string) bool {
-	for _, p := range i.AllPlayers {
-		if p.UserName == username {
-			return true
-		}
-	}
-	return false
+	return nil, false
 }
 
 // SetWinner sets winner of game

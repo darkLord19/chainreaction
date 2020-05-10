@@ -49,7 +49,7 @@ func StartGamePlay(c *gin.Context) {
 		return
 	}
 
-	player := gInstance.GetPlayerByID(uname)
+	player, _ := gInstance.GetPlayerByUsername(uname)
 
 	if player == nil {
 		ret = gin.H{"Error": "No such user exists in this game"}
