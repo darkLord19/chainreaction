@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -52,23 +51,23 @@ func (i *Instance) ReadMoveChan(m *MoveMsg) {
 
 // SetBroadcastBoardFlag sets broadcast board state flag safely
 func (i *Instance) SetBroadcastBoardFlag(val bool) {
-	fmt.Println("mtx from set ", &i.bbcastMutex)
-	fmt.Println("set in")
+	// fmt.Println("mtx from set ", &i.bbcastMutex)
+	// fmt.Println("set in")
 	i.bbcastMutex.Lock()
 	i.broadcastBoardFlag = val
-	fmt.Println("from set: ", i.broadcastBoardFlag)
+	// fmt.Println("from set: ", i.broadcastBoardFlag)
 	i.bbcastMutex.Unlock()
-	fmt.Println("set out")
+	// fmt.Println("set out")
 }
 
 // GetBroadcastBoardFlag sets broadcast board state flag safely
 func (i *Instance) GetBroadcastBoardFlag() bool {
-	fmt.Println("mtx from get ", &i.bbcastMutex)
-	fmt.Println("get in")
+	// fmt.Println("mtx from get ", &i.bbcastMutex)
+	// fmt.Println("get in")
 	i.bbcastMutex.Lock()
 	defer i.bbcastMutex.Unlock()
-	fmt.Println("from get: ", i.broadcastBoardFlag)
-	fmt.Println("get out")
+	// fmt.Println("from get: ", i.broadcastBoardFlag)
+	// fmt.Println("get out")
 	return i.broadcastBoardFlag
 }
 
