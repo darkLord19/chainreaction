@@ -16,6 +16,7 @@ type Instance struct {
 	Dimension              int `json:"dimension" form:"dimension"`
 	CreatedOn              time.Time
 	ExpiresOn              time.Time
+	AvailableColors        map[string]bool
 	IsOver                 bool
 	currentActivePlayers   int
 	allPlayedOnce          bool

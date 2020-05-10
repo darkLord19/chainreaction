@@ -12,5 +12,6 @@ func main() {
 	route.GET("/new", api.CreateNewGame)
 	route.GET("/join", api.JoinExistingGame)
 	route.GET("/play", api.StartGamePlay)
+	route.GET("/colors", api.GetAvailableColors)
 	route.Run()
 }
