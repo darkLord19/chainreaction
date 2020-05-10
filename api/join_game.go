@@ -70,5 +70,5 @@ func JoinExistingGame(c *gin.Context) {
 		"user": gin.H{"username": username, "color": color}}
 
 	log.Println(ret)
-	c.JSON(200, ret)
+	c.JSON(http.StatusOK, ret)
 }
