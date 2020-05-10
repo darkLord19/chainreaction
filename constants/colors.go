@@ -1,12 +1,13 @@
 package constants
 
-const (
-	RED      = "#FF1744"
-	INDIGO   = "#3D5AFE"
-	CYAN     = "#00E5FF"
-	TEAL     = "#1DE9B6"
-	GREEN    = "#00E676"
-	YELLOW   = "#FFEA00"
-	ORANGE   = "#FF9100"
-	BLUEGREY = "#37474F"
-)
+// Colors available to choose from for users
+var Colors = []string{
+	"#FF1744", //RED
+	"#3D5AFE", //INDIGO
+	"#00E5FF", //CYAN
+	"#1DE9B6", //TEAL
+	"#00E676", //GREEN
+	"#FFEA00", //YELLOW
+	"#FF9100", //ORANGE
+	"#37474F", //BLUEGREY
+}
