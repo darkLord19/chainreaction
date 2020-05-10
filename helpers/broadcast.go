@@ -22,7 +22,7 @@ func BroadcastMoves(i *models.Instance) {
 				i.AllPlayers[x].CleanupWs()
 			}
 		}
-		if i.IsOver {
+		if i.GetIfSomeoneWon() {
 			return
 		}
 	}
@@ -42,7 +42,7 @@ func BroadcastBoardUpdates(i *models.Instance) {
 			}
 			i.SetBroadcastBoardFlag(false)
 		}
-		if i.IsOver {
+		if i.GetIfSomeoneWon() {
 			return
 		}
 	}
@@ -51,9 +51,6 @@ func BroadcastBoardUpdates(i *models.Instance) {
 // BroadcastWinner broadcasts winner to users
 func BroadcastWinner(i *models.Instance) {
 	for {
-		if i.IsOver {
-			return
-		}
 		if i.GetIfSomeoneWon() {
 			for x := range i.AllPlayers {
 				winner := i.GetWinner()
@@ -65,6 +62,7 @@ func BroadcastWinner(i *models.Instance) {
 				}
 			}
 			i.IsOver = true
+			return
 		}
 	}
 }

@@ -22,6 +22,7 @@ type Instance struct {
 	broadcastBoardFlag     bool
 	didWin                 bool
 	allPlayedOnce          bool
+	didWinMutex            sync.RWMutex //winnerMutex protects read write to didWin
 	allPlayedMutex         sync.RWMutex //allPlayedMutex protects read write to allPlayedOnce
 	bbcastMutex            sync.RWMutex //bbcastMutex protects read write to broadcastBoardFlag
 	currActivePlayersMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
@@ -96,17 +97,16 @@ func (i *Instance) SetIfAllPlayedOnce() {
 
 // GetIfSomeoneWon returns if someone won
 func (i *Instance) GetIfSomeoneWon() bool {
-	i.allPlayedMutex.Lock()
-	val := i.didWin
-	i.allPlayedMutex.Unlock()
-	return val
+	i.didWinMutex.Lock()
+	defer i.didWinMutex.Unlock()
+	return i.didWin
 }
 
 // SetIfSomeoneWon sets didWin
 func (i *Instance) SetIfSomeoneWon(val bool) {
-	i.allPlayedMutex.Lock()
+	i.didWinMutex.Lock()
 	i.didWin = val
-	i.allPlayedMutex.Unlock()
+	i.didWinMutex.Unlock()
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
