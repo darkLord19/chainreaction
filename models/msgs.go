@@ -18,8 +18,9 @@ type NewStateMsg struct {
 
 // WinnerMsg struct is used to send winner notification to users
 type WinnerMsg struct {
-	MsgType int    `json:"msg_type"`
-	Winner  Player `json:"winner"`
+	MsgType  int    `json:"msg_type"`
+	UserName string `json:"user_name"`
+	Color    string `json:"color"`
 }
 
 // ErrMsg struct is used to notify user with err msgs
