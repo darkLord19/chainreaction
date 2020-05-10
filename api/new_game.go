@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/chainreaction/api/validators"
+
 	"github.com/chainreaction/datastore"
 	"github.com/chainreaction/models"
 	"github.com/gin-gonic/gin"
@@ -23,22 +25,17 @@ func CreateNewGame(c *gin.Context) {
 	gameInstance.ExpiresOn = gameInstance.CreatedOn.Add(time.Minute * time.Duration(25))
 	gameInstance.CurrentTurn = 0
 	gameInstance.RoomName = datastore.GetNewUniqueRoomName()
-	if gameInstance.PlayersCount < 2 {
-		ret = gin.H{"Error": "At least two players needed"}
-		log.Println(ret)
-		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
-		return
+
+	err := validators.ValidateInstance(&gameInstance)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 	}
-	if gameInstance.Dimension == 0 {
-		ret = gin.H{"Error": "Provide valid dimension value"}
-		log.Println(ret)
-		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
-		return
-	}
+
 	gameInstance.Board = make([][]models.Pixel, gameInstance.Dimension)
 	for i := 0; i < gameInstance.Dimension; i++ {
 		gameInstance.Board[i] = make([]models.Pixel, gameInstance.Dimension)
 	}
+
 	gameInstance.InitChannel()
 	datastore.AddGameInstance(&gameInstance)
 	ret = gin.H{"GameRoomName": gameInstance.RoomName}
