@@ -10,7 +10,7 @@ import (
 type Player struct {
 	UserName     string
 	Color        string
-	mutex        sync.Mutex
+	mutex        sync.RWMutex
 	wsConnection *websocket.Conn
 }
 

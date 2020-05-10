@@ -22,10 +22,10 @@ type Instance struct {
 	broadcastBoardFlag     bool
 	didWin                 bool
 	allPlayedOnce          bool
-	allPlayedMutex         sync.Mutex //allPlayedMutex protects read write to allPlayedOnce
-	bbcastMutex            sync.Mutex //bbcastMutex protects read write to broadcastBoardFlag
-	currActivePlayersMutex sync.Mutex //currActivePlayersMutex protects read write to CurrentActivePlayers
-	winnerBcastMutex       sync.Mutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
+	allPlayedMutex         sync.RWMutex //allPlayedMutex protects read write to allPlayedOnce
+	bbcastMutex            sync.RWMutex //bbcastMutex protects read write to broadcastBoardFlag
+	currActivePlayersMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
+	winnerBcastMutex       sync.RWMutex //winnerBcastMutex protects read write to didWin, Winner and IsOver
 }
 
 // Pixel represents current state of one pixel on board
