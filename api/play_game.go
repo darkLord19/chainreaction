@@ -69,7 +69,7 @@ func StartGamePlay(c *gin.Context) {
 
 	player.SetWsConnection(ws)
 
-	go helpers.BroadcastMoves(gInstance)
+	// go helpers.BroadcastMoves(gInstance)
 	go helpers.BroadcastBoardUpdates(gInstance)
 	go helpers.BroadcastWinner(gInstance)
 

@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/chainreaction/utils"
+
 	"github.com/chainreaction/constants"
 )
 
@@ -23,7 +25,7 @@ type Instance struct {
 	currentActivePlayers   int
 	allPlayedOnce          bool
 	getMove                chan MoveMsg
-	broadcastBoard         chan bool
+	broadcastBoard         chan [][]utils.Pair
 	didWin                 chan bool
 	winnerMutex            sync.RWMutex //winnerMutex protects read write to Winner
 	allPlayedMutex         sync.RWMutex //allPlayedMutex protects allPlayedOnce
@@ -51,7 +53,7 @@ func (i *Instance) Init(name string) {
 		i.AvailableColors[c] = true
 	}
 	i.getMove = make(chan MoveMsg)
-	i.broadcastBoard = make(chan bool)
+	i.broadcastBoard = make(chan [][]utils.Pair)
 	i.didWin = make(chan bool)
 }
 
@@ -76,12 +78,12 @@ func (i *Instance) ReadDidWinChan(val *bool) {
 }
 
 // WriteBcastBoardChan return brodcast channel
-func (i *Instance) WriteBcastBoardChan(val bool) {
+func (i *Instance) WriteBcastBoardChan(val [][]utils.Pair) {
 	i.broadcastBoard <- val
 }
 
 // ReadBcastBoardChan reads value from move chan
-func (i *Instance) ReadBcastBoardChan(val *bool) {
+func (i *Instance) ReadBcastBoardChan(val *[][]utils.Pair) {
 	*val = <-i.broadcastBoard
 }
 

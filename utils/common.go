@@ -4,8 +4,8 @@ import "sync"
 
 // Pair struct to
 type Pair struct {
-	X int
-	Y int
+	X int `json:"xpos"`
+	Y int `json:"ypos"`
 }
 
 // Queue the queue of int pairs

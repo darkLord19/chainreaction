@@ -5,34 +5,20 @@ import (
 
 	"github.com/chainreaction/constants"
 	"github.com/chainreaction/models"
+	"github.com/chainreaction/utils"
 )
-
-// BroadcastMoves brodcasts move to all players
-func BroadcastMoves(i *models.Instance) {
-	var move models.MoveMsg
-	for {
-		i.ReadMoveChan(&move)
-		p, _ := i.GetPlayerByUsername(move.PlayerUserName)
-		move.Color = p.Color
-		for x := range i.AllPlayers {
-			move.MsgType = constants.MoveBcastMsg
-			err := i.AllPlayers[x].WriteToWebsocket(move)
-			if err != nil {
-				log.Printf("error: %v", err)
-				i.AllPlayers[x].CleanupWs()
-			}
-		}
-	}
-}
 
 // BroadcastBoardUpdates broadcasts board updates to users
 func BroadcastBoardUpdates(i *models.Instance) {
-	var val bool
+	var move models.MoveMsg
+	var val [][]utils.Pair
 	for {
+		i.ReadMoveChan(&move)
 		i.ReadBcastBoardChan(&val)
-		if val {
+		if val != nil {
 			for x := range i.AllPlayers {
-				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName, i.Board}
+				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName,
+					move.Color, move.PlayerUserName, val}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
