@@ -16,9 +16,10 @@ func BroadcastBoardUpdates(i *models.Instance) {
 		i.ReadMoveChan(&move)
 		i.ReadBcastBoardChan(&val)
 		if val != nil {
+			p, _ := i.GetPlayerByUsername(move.PlayerUserName)
 			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName,
-					move.Color, move.PlayerUserName, val}
+					p.Color, move.PlayerUserName, val}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
