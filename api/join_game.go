@@ -57,7 +57,7 @@ func JoinExistingGame(c *gin.Context) {
 		return
 	}
 	if gInstance.CheckIfValidColor(color) {
-		ret = gin.H{"Error": "Color `" + color + "` is already selected by someone else"}
+		ret = gin.H{"Error": "Color `" + color + "` is not a valid color"}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusForbidden, ret)
 		return
