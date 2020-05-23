@@ -5,13 +5,12 @@ import (
 
 	"github.com/chainreaction/constants"
 	"github.com/chainreaction/models"
-	"github.com/chainreaction/utils"
 )
 
 // BroadcastBoardUpdates broadcasts board updates to users
 func BroadcastBoardUpdates(i *models.Instance) {
 	var move models.MoveMsg
-	var val [][]utils.Pair
+	var val []int
 	for {
 		i.ReadMoveChan(&move)
 		i.ReadBcastBoardChan(&val)
