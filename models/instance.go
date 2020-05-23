@@ -46,7 +46,6 @@ func (i *Instance) Init(name string) {
 	for a := 0; a < i.Dimension; a++ {
 		i.Board[a] = make([]Pixel, i.Dimension)
 	}
-	i.AvailableColors = make(map[string]bool)
 	for _, c := range constants.Colors {
 		i.AvailableColors[c] = true
 	}
