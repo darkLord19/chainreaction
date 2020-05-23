@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/chainreaction/utils"
-)
-
 // MoveMsg struct is used to get Move messages from websocket client
 type MoveMsg struct {
 	MsgType        int    `json:"msg_type"`
@@ -14,11 +10,11 @@ type MoveMsg struct {
 
 // NewStateMsg struct is used to represent board update for websocket broadcast
 type NewStateMsg struct {
-	MsgType     int            `json:"msg_type"`
-	NewCurrTurn string         `json:"new_currturn"`
-	Color       string         `json:"color"`
-	PlayedBy    string         `json:"played_by"`
-	States      [][]utils.Pair `json:"states"`
+	MsgType     int    `json:"msg_type"`
+	NewCurrTurn string `json:"new_currturn"`
+	Color       string `json:"color"`
+	PlayedBy    string `json:"played_by"`
+	States      []int  `json:"states"`
 }
 
 // WinnerMsg struct is used to send winner notification to users

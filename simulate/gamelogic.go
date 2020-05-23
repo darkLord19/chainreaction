@@ -8,8 +8,8 @@ import (
 	"github.com/chainreaction/utils"
 )
 
-func updateBoard(board *[][]models.Pixel, x int, y int, color string) [][]utils.Pair {
-	var states [][]utils.Pair
+func updateBoard(board *[][]models.Pixel, x int, y int, color string) []int {
+	var states []int
 	q := utils.NewQueue()
 	q.Enqueue(utils.Pair{x, y})
 
@@ -20,7 +20,6 @@ func updateBoard(board *[][]models.Pixel, x int, y int, color string) [][]utils.
 	(*board)[x][y].Color = color
 
 	for !q.IsEmpty() {
-		t := make([]utils.Pair, 1)
 		x, y = q.Dequeue()
 
 		cnt := (*board)[x][y].DotCount
@@ -28,24 +27,25 @@ func updateBoard(board *[][]models.Pixel, x int, y int, color string) [][]utils.
 		switch cnt {
 		case 2:
 			if utils.IsCorner(m, n, x, y) {
-				updatePixelState(board, x, y, color, q, &t)
+				updatePixelState(board, x, y, color, q, &states)
 			}
 		case 3:
 			if utils.IsOnEdge(m, n, x, y) {
-				updatePixelState(board, x, y, color, q, &t)
+				updatePixelState(board, x, y, color, q, &states)
 			}
 		case 4:
-			updatePixelState(board, x, y, color, q, &t)
+			updatePixelState(board, x, y, color, q, &states)
 		}
 
-		states = append(states, t)
+		// seperator to know which states updated levelwise
+		states = append(states, -1)
 
 	}
 
 	return states
 }
 
-func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *utils.Queue, t *[]utils.Pair) {
+func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *utils.Queue, t *[]int) {
 	(*board)[x][y].DotCount = 0
 	(*board)[x][y].Color = ""
 
@@ -59,28 +59,32 @@ func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *ut
 		(*board)[x-1][y].Color = color
 		p = utils.Pair{x - 1, y}
 		q.Enqueue(p)
-		*t = append(*t, p)
+		tmp := []int{x - 1, y, (*board)[x-1][y].DotCount}
+		*t = append(*t, tmp...)
 	}
 	if y > 0 {
 		(*board)[x][y-1].DotCount++
 		(*board)[x][y-1].Color = color
 		p = utils.Pair{x, y - 1}
 		q.Enqueue(p)
-		*t = append(*t, p)
+		tmp := []int{x, y - 1, (*board)[x][y-1].DotCount}
+		*t = append(*t, tmp...)
 	}
 	if x < m-1 {
 		(*board)[x+1][y].DotCount++
 		(*board)[x+1][y].Color = color
 		p = utils.Pair{x + 1, y}
 		q.Enqueue(p)
-		*t = append(*t, p)
+		tmp := []int{x + 1, y, (*board)[x+1][y].DotCount}
+		*t = append(*t, tmp...)
 	}
 	if y < n-1 {
 		(*board)[x][y+1].DotCount++
 		(*board)[x][y+1].Color = color
 		p = utils.Pair{x, y + 1}
 		q.Enqueue(p)
-		*t = append(*t, p)
+		tmp := []int{x, y + 1, (*board)[x][y+1].DotCount}
+		*t = append(*t, tmp...)
 	}
 }
 
