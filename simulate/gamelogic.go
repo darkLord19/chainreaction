@@ -16,6 +16,8 @@ func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []i
 	(*board)[dim*x+y].DotCount++
 	(*board)[dim*x+y].Color = color
 
+	states = append(states, []int{x, y, (*board)[dim*x+y].DotCount}...)
+
 	for !q.IsEmpty() {
 		x, y = q.Dequeue()
 
