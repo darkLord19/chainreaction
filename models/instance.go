@@ -22,9 +22,8 @@ type Instance struct {
 	IsOver                 bool
 	currentActivePlayers   int
 	allPlayedOnce          bool
-	getMove                chan MoveMsg
-	broadcastBoard         chan []int
-	didWin                 chan bool
+	RecvMove               chan MoveMsg `json:"-"`
+	UpdatedBoard           chan []int   `json:"-"`
 	winnerMutex            sync.RWMutex //winnerMutex protects read write to Winner
 	allPlayedMutex         sync.RWMutex //allPlayedMutex protects allPlayedOnce
 	currActivePlayersMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
@@ -50,39 +49,8 @@ func (i *Instance) Init(name string) {
 	for _, c := range constants.Colors {
 		i.AvailableColors[c] = true
 	}
-	i.getMove = make(chan MoveMsg)
-	i.broadcastBoard = make(chan []int)
-	i.didWin = make(chan bool)
-}
-
-// WriteToMoveCh return brodcast channel
-func (i *Instance) WriteToMoveCh(m MoveMsg) {
-	i.getMove <- m
-}
-
-// ReadMoveChan reads value from move chan
-func (i *Instance) ReadMoveChan(m *MoveMsg) {
-	*m = <-i.getMove
-}
-
-// WriteDidWinChan return brodcast channel
-func (i *Instance) WriteDidWinChan(val bool) {
-	i.didWin <- val
-}
-
-// ReadDidWinChan reads value from move chan
-func (i *Instance) ReadDidWinChan(val *bool) {
-	*val = <-i.didWin
-}
-
-// WriteBcastBoardChan return brodcast channel
-func (i *Instance) WriteBcastBoardChan(val []int) {
-	i.broadcastBoard <- val
-}
-
-// ReadBcastBoardChan reads value from move chan
-func (i *Instance) ReadBcastBoardChan(val *[]int) {
-	*val = <-i.broadcastBoard
+	i.RecvMove = make(chan MoveMsg)
+	i.UpdatedBoard = make(chan []int)
 }
 
 // CheckIfColorSelected checks if given color is already selected by another player
@@ -136,7 +104,6 @@ func (i *Instance) GetPlayerByUsername(username string) (*Player, bool) {
 // SetWinner sets winner of game
 func (i *Instance) SetWinner(p *Player) {
 	i.winnerMutex.Lock()
-	i.didWin <- true
 	i.Winner = p
 	i.winnerMutex.Unlock()
 }

@@ -131,7 +131,7 @@ func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
 
 	helpers.SetIfAllPlayedOnce(gameInstance, player.UserName)
 
-	gameInstance.WriteBcastBoardChan(states)
+	gameInstance.UpdatedBoard <- states
 
 	if won {
 		gameInstance.SetWinner(player)
