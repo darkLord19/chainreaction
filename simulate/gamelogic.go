@@ -36,9 +36,6 @@ func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []i
 			updatePixelState(board, x, y, color, q, &states, dim)
 		}
 
-		// seperator to know which states updated levelwise
-		states = append(states, -1)
-
 	}
 
 	return states
@@ -47,6 +44,8 @@ func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []i
 func updatePixelState(board *[]models.Pixel, x int, y int, color string, q *utils.Queue, t *[]int, dim int) {
 	(*board)[dim*x+y].DotCount = 0
 	(*board)[dim*x+y].Color = ""
+
+	*t = append(*t, []int{x, y, 0}...)
 
 	var p utils.Pair
 
@@ -82,6 +81,9 @@ func updatePixelState(board *[]models.Pixel, x int, y int, color string, q *util
 		tmp := []int{x, y + 1, (*board)[(dim*x)+(y+1)].DotCount}
 		*t = append(*t, tmp...)
 	}
+
+	// seperator to know which states updated levelwise
+	*t = append(*t, -1)
 }
 
 func checkIfWon(gI *models.Instance, color string) bool {
