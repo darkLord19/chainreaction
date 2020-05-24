@@ -8,33 +8,30 @@ import (
 	"github.com/chainreaction/utils"
 )
 
-func updateBoard(board *[][]models.Pixel, x int, y int, color string) []int {
+func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []int {
 	var states []int
 	q := utils.NewQueue()
 	q.Enqueue(utils.Pair{x, y})
 
-	m := len(*board)
-	n := len((*board)[0])
-
-	(*board)[x][y].DotCount++
-	(*board)[x][y].Color = color
+	(*board)[dim*x+y].DotCount++
+	(*board)[dim*x+y].Color = color
 
 	for !q.IsEmpty() {
 		x, y = q.Dequeue()
 
-		cnt := (*board)[x][y].DotCount
+		cnt := (*board)[dim*x+y].DotCount
 
 		switch cnt {
 		case 2:
-			if utils.IsCorner(m, n, x, y) {
-				updatePixelState(board, x, y, color, q, &states)
+			if utils.IsCorner(dim, dim, x, y) {
+				updatePixelState(board, x, y, color, q, &states, dim)
 			}
 		case 3:
-			if utils.IsOnEdge(m, n, x, y) {
-				updatePixelState(board, x, y, color, q, &states)
+			if utils.IsOnEdge(dim, dim, x, y) {
+				updatePixelState(board, x, y, color, q, &states, dim)
 			}
 		case 4:
-			updatePixelState(board, x, y, color, q, &states)
+			updatePixelState(board, x, y, color, q, &states, dim)
 		}
 
 		// seperator to know which states updated levelwise
@@ -45,45 +42,42 @@ func updateBoard(board *[][]models.Pixel, x int, y int, color string) []int {
 	return states
 }
 
-func updatePixelState(board *[][]models.Pixel, x int, y int, color string, q *utils.Queue, t *[]int) {
-	(*board)[x][y].DotCount = 0
-	(*board)[x][y].Color = ""
-
-	m := len(*board)
-	n := len((*board)[0])
+func updatePixelState(board *[]models.Pixel, x int, y int, color string, q *utils.Queue, t *[]int, dim int) {
+	(*board)[dim*x+y].DotCount = 0
+	(*board)[dim*x+y].Color = ""
 
 	var p utils.Pair
 
 	if x > 0 {
-		(*board)[x-1][y].DotCount++
-		(*board)[x-1][y].Color = color
+		(*board)[(dim*(x-1))+y].DotCount++
+		(*board)[(dim*(x-1))+y].Color = color
 		p = utils.Pair{x - 1, y}
 		q.Enqueue(p)
-		tmp := []int{x - 1, y, (*board)[x-1][y].DotCount}
+		tmp := []int{x - 1, y, (*board)[(dim*(x-1))+y].DotCount}
 		*t = append(*t, tmp...)
 	}
 	if y > 0 {
-		(*board)[x][y-1].DotCount++
-		(*board)[x][y-1].Color = color
+		(*board)[(dim*x)+(y-1)].DotCount++
+		(*board)[(dim*x)+(y-1)].Color = color
 		p = utils.Pair{x, y - 1}
 		q.Enqueue(p)
-		tmp := []int{x, y - 1, (*board)[x][y-1].DotCount}
+		tmp := []int{x, y - 1, (*board)[(dim*x)+(y-1)].DotCount}
 		*t = append(*t, tmp...)
 	}
-	if x < m-1 {
-		(*board)[x+1][y].DotCount++
-		(*board)[x+1][y].Color = color
+	if x < dim-1 {
+		(*board)[(dim*(x+1))+y].DotCount++
+		(*board)[(dim*(x+1))+y].Color = color
 		p = utils.Pair{x + 1, y}
 		q.Enqueue(p)
-		tmp := []int{x + 1, y, (*board)[x+1][y].DotCount}
+		tmp := []int{x + 1, y, (*board)[(dim*(x+1))+y].DotCount}
 		*t = append(*t, tmp...)
 	}
-	if y < n-1 {
-		(*board)[x][y+1].DotCount++
-		(*board)[x][y+1].Color = color
+	if y < dim-1 {
+		(*board)[(dim*x)+(y+1)].DotCount++
+		(*board)[(dim*x)+(y+1)].Color = color
 		p = utils.Pair{x, y + 1}
 		q.Enqueue(p)
-		tmp := []int{x, y + 1, (*board)[x][y+1].DotCount}
+		tmp := []int{x, y + 1, (*board)[(dim*x)+(y+1)].DotCount}
 		*t = append(*t, tmp...)
 	}
 }
@@ -95,8 +89,8 @@ func checkIfWon(gI *models.Instance, color string) bool {
 	}
 	for i := 0; i < gI.Dimension; i++ {
 		for j := 0; j < gI.Dimension; j++ {
-			if gI.Board[i][j].DotCount != 0 {
-				if gI.Board[i][j].Color != color {
+			if gI.Board[gI.Dimension*i+j].DotCount != 0 {
+				if gI.Board[gI.Dimension*i+j].Color != color {
 					won = false
 				}
 			}
@@ -120,12 +114,12 @@ func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
 		return fmt.Errorf("Given positions x %v and y %v are out of range", x, y)
 	}
 
-	if board[x][y].DotCount != 0 &&
-		board[x][y].Color != player.Color {
-		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[x][y].Color)
+	if board[gameInstance.Dimension*x+y].DotCount != 0 &&
+		board[gameInstance.Dimension*x+y].Color != player.Color {
+		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[gameInstance.Dimension*x+y].Color)
 	}
 
-	states := updateBoard(&board, x, y, player.Color)
+	states := updateBoard(&board, x, y, player.Color, gameInstance.Dimension)
 
 	won := checkIfWon(gameInstance, player.Color)
 

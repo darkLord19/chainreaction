@@ -9,7 +9,7 @@ import (
 
 // Instance represents a single game instance
 type Instance struct {
-	Board                  [][]Pixel
+	Board                  []Pixel
 	PlayersCount           int `json:"players_count" form:"players_count"`
 	CurrentTurn            int `json:"current_turn"`
 	AllPlayers             []Player
@@ -40,11 +40,8 @@ func (i *Instance) Init(name string) {
 	i.CreatedOn = time.Now().UTC()
 	i.ExpiresOn = i.CreatedOn.Add(time.Minute * time.Duration(25))
 	i.CurrentTurn = 0
-	i.Board = make([][]Pixel, i.Dimension)
+	i.Board = make([]Pixel, i.Dimension*i.Dimension)
 	i.RoomName = name
-	for a := 0; a < i.Dimension; a++ {
-		i.Board[a] = make([]Pixel, i.Dimension)
-	}
 	i.AvailableColors = make(map[string]bool)
 	for _, c := range constants.Colors {
 		i.AvailableColors[c] = true
