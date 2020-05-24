@@ -18,7 +18,7 @@ import (
 // StartGamePlay start websocket connection with clients for game play
 func StartGamePlay(c *gin.Context) {
 	var ret gin.H
-	roomname := c.Query("roomname")
+	roomname := strings.ToLower(c.Param("name"))
 	if roomname == "" {
 		ret = gin.H{"Error": "Please provide a game instance id"}
 		log.Println(ret)

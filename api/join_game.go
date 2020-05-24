@@ -14,7 +14,7 @@ import (
 // JoinExistingGame provides wndpoint to join already created game
 func JoinExistingGame(c *gin.Context) {
 	var ret gin.H
-	roomName := strings.ToLower(c.Query("roomname"))
+	roomName := strings.ToLower(c.Param("name"))
 	if roomName == "" {
 		ret = gin.H{"Error": "Please provide a game instance id"}
 		log.Println(ret)

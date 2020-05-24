@@ -13,7 +13,7 @@ import (
 // GetAvailableColors returns available colors for game to choose from
 func GetAvailableColors(c *gin.Context) {
 	var ret gin.H
-	roomName := strings.ToLower(c.Query("roomname"))
+	roomName := strings.ToLower(c.Param("name"))
 	if roomName == "" {
 		ret = gin.H{"Error": "Please provide a game instance id"}
 		log.Println(ret)
