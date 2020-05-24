@@ -74,7 +74,7 @@ func JoinExistingGame(c *gin.Context) {
 	p.Color = color
 	gInstance.AllPlayers = append(gInstance.AllPlayers, p)
 
-	ret = gin.H{"Success": "You have joined the game mothafucka", "game instance": gInstance,
+	ret = gin.H{"Success": "You have joined the game mothafucka", "game_instance": gInstance,
 		"user": gin.H{"username": username, "color": color}}
 
 	log.Println(ret)

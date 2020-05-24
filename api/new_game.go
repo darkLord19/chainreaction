@@ -29,6 +29,6 @@ func CreateNewGame(c *gin.Context) {
 
 	gameInstance.Init(datastore.GetNewUniqueRoomName())
 	datastore.AddGameInstance(&gameInstance)
-	ret = gin.H{"GameRoomName": gameInstance.RoomName}
+	ret = gin.H{"game_roomname": gameInstance.RoomName}
 	c.JSON(http.StatusCreated, ret)
 }
