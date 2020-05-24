@@ -8,8 +8,8 @@ import (
 
 // Player represents a single player
 type Player struct {
-	UserName     string
-	Color        string
+	UserName     string `json:"username"`
+	Color        string `json:"color"`
 	mutex        sync.RWMutex
 	wsConnection *websocket.Conn
 }

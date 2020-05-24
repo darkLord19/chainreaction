@@ -9,17 +9,17 @@ import (
 
 // Instance represents a single game instance
 type Instance struct {
-	Board                  []Pixel
-	PlayersCount           int `json:"players_count" form:"players_count"`
-	CurrentTurn            int `json:"current_turn"`
-	AllPlayers             []Player
-	Winner                 *Player
-	RoomName               string
-	Dimension              int `json:"dimension" form:"dimension"`
-	CreatedOn              time.Time
-	ExpiresOn              time.Time
-	AvailableColors        map[string]bool
-	IsOver                 bool
+	Board                  []Pixel         `json:"-"`
+	PlayersCount           int             `json:"players_count" form:"players_count"`
+	CurrentTurn            int             `json:"current_turn"`
+	AllPlayers             []Player        `json:"all_players"`
+	Winner                 *Player         `json:"-"`
+	RoomName               string          `json:"room_name"`
+	Dimension              int             `json:"dimension" form:"dimension"`
+	CreatedOn              time.Time       `json:"-"`
+	ExpiresOn              time.Time       `json:"-"`
+	AvailableColors        map[string]bool `json:"-"`
+	IsOver                 bool            `json:"-"`
 	currentActivePlayers   int
 	allPlayedOnce          bool
 	RecvMove               chan MoveMsg `json:"-"`
