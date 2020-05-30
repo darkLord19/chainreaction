@@ -117,3 +117,23 @@ func (i *Instance) GetIfAllPlayedOnce() bool {
 	defer i.allPlayedMutex.Unlock()
 	return i.allPlayedOnce
 }
+
+// IncCellCountOfPlayer accepts color and increases cell count
+// for the given player who has that color
+func (i *Instance) IncCellCountOfPlayer(color string) {
+	for a := range i.AllPlayers {
+		if i.AllPlayers[a].Color == color {
+			i.AllPlayers[a].CellCount++
+		}
+	}
+}
+
+// DecCellCountOfPlayer accepts color and increases cell count
+// for the given player who has that color
+func (i *Instance) DecCellCountOfPlayer(color string) {
+	for a := range i.AllPlayers {
+		if i.AllPlayers[a].Color == color {
+			i.AllPlayers[a].CellCount--
+		}
+	}
+}

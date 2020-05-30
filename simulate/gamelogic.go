@@ -8,16 +8,24 @@ import (
 	"github.com/chainreaction/utils"
 )
 
-func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []int {
+func updateBoard(gameInstance *models.Instance, x int, y int, color string) []int {
 	var states []int
+	dim := gameInstance.Dimension
+	board := &gameInstance.Board
 	q := utils.NewQueue()
 	q.Enqueue(utils.Pair{x, y})
 
 	for !q.IsEmpty() {
 		x, y = q.Dequeue()
 
+		if c := (*board)[dim*x+y].Color; c != "" && c != color {
+			gameInstance.DecCellCountOfPlayer(c)
+		}
+
 		(*board)[dim*x+y].DotCount++
 		(*board)[dim*x+y].Color = color
+
+		gameInstance.IncCellCountOfPlayer(color)
 
 		cnt := (*board)[dim*x+y].DotCount
 
@@ -100,7 +108,7 @@ func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
 		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[gameInstance.Dimension*x+y].Color)
 	}
 
-	states := updateBoard(&board, x, y, player.Color, gameInstance.Dimension)
+	states := updateBoard(gameInstance, x, y, player.Color)
 
 	won := checkIfWon(gameInstance, player.Color)
 

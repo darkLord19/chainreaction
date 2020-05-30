@@ -10,6 +10,8 @@ import (
 type Player struct {
 	UserName     string `json:"username"`
 	Color        string `json:"color"`
+	CellCount    int    `json:"-"`
+	Defeated     bool   `json:"-"`
 	mutex        sync.RWMutex
 	wsConnection *websocket.Conn
 }
