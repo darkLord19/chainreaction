@@ -27,7 +27,7 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusNotFound, ret)
 		return
 	}
-	if gInstance.GetCurrentActivePlayers() == gInstance.PlayersCount {
+	if gInstance.GetCurrentActivePlayersCount() == gInstance.PlayersCount {
 		ret = gin.H{"Error": "Game is already full."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusForbidden, ret)

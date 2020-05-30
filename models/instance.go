@@ -9,26 +9,26 @@ import (
 
 // Instance represents a single game instance
 type Instance struct {
-	Board                  []Pixel   `json:"-"`
-	PlayersCount           int       `json:"players_count" form:"players_count"`
-	CurrentTurn            int       `json:"current_turn"`
-	AllPlayers             []Player  `json:"all_players"`
-	Winner                 *Player   `json:"-"`
-	RoomName               string    `json:"room_name"`
-	Dimension              int       `json:"dimension" form:"dimension"`
-	CreatedOn              time.Time `json:"-"`
-	ExpiresOn              time.Time `json:"-"`
-	AvailableColors        [8]string `json:"-"`
-	IsOver                 bool      `json:"-"`
-	joinedPlayers          int
-	currentActivePlayers   int
-	allPlayedOnce          bool
-	RecvMove               chan MoveMsg `json:"-"`
-	UpdatedBoard           chan []int   `json:"-"`
-	winnerMutex            sync.RWMutex //winnerMutex protects read write to Winner
-	allPlayedMutex         sync.RWMutex //allPlayedMutex protects allPlayedOnce
-	currActivePlayersMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
-	joinedPlayersMutex     sync.RWMutex
+	Board                     []Pixel   `json:"-"`
+	PlayersCount              int       `json:"players_count" form:"players_count"`
+	CurrentTurn               int       `json:"current_turn"`
+	AllPlayers                []Player  `json:"all_players"`
+	Winner                    *Player   `json:"-"`
+	RoomName                  string    `json:"room_name"`
+	Dimension                 int       `json:"dimension" form:"dimension"`
+	CreatedOn                 time.Time `json:"-"`
+	ExpiresOn                 time.Time `json:"-"`
+	AvailableColors           [8]string `json:"-"`
+	IsOver                    bool      `json:"-"`
+	joinedPlayers             int
+	currActivePlayersCnt      int
+	allPlayedOnce             bool
+	RecvMove                  chan MoveMsg `json:"-"`
+	UpdatedBoard              chan []int   `json:"-"`
+	winnerMutex               sync.RWMutex //winnerMutex protects read write to Winner
+	allPlayedMutex            sync.RWMutex //allPlayedMutex protects allPlayedOnce
+	currActivePlayersCntMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
+	joinedPlayersMutex        sync.RWMutex
 }
 
 // Pixel represents current state of one pixel on board
@@ -60,23 +60,23 @@ func (i *Instance) GetAndIncJoinPlayers() int {
 
 // IncCurrentActivePlayers increases current active players count safely
 func (i *Instance) IncCurrentActivePlayers() {
-	i.currActivePlayersMutex.Lock()
-	i.currentActivePlayers++
-	i.currActivePlayersMutex.Unlock()
+	i.currActivePlayersCntMutex.Lock()
+	i.currActivePlayersCnt++
+	i.currActivePlayersCntMutex.Unlock()
 }
 
-// DecCurrentActivePlayers decreases active players count safely
-func (i *Instance) DecCurrentActivePlayers() {
-	i.currActivePlayersMutex.Lock()
-	i.currentActivePlayers--
-	i.currActivePlayersMutex.Unlock()
+// DecCurrentActivePlayersCount decreases active players count safely
+func (i *Instance) DecCurrentActivePlayersCount() {
+	i.currActivePlayersCntMutex.Lock()
+	i.currActivePlayersCnt--
+	i.currActivePlayersCntMutex.Unlock()
 }
 
-// GetCurrentActivePlayers gets the current active players count safely
-func (i *Instance) GetCurrentActivePlayers() int {
-	i.currActivePlayersMutex.Lock()
-	val := i.currentActivePlayers
-	i.currActivePlayersMutex.Unlock()
+// GetCurrentActivePlayersCount gets the current active players count safely
+func (i *Instance) GetCurrentActivePlayersCount() int {
+	i.currActivePlayersCntMutex.Lock()
+	val := i.currActivePlayersCnt
+	i.currActivePlayersCntMutex.Unlock()
 	return val
 }
 

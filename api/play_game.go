@@ -35,7 +35,7 @@ func StartGamePlay(c *gin.Context) {
 
 	gInstance, exists := datastore.GetGameInstance(roomname)
 
-	if gInstance.GetCurrentActivePlayers() == gInstance.PlayersCount {
+	if gInstance.GetCurrentActivePlayersCount() == gInstance.PlayersCount {
 		ret = gin.H{"Error": "Game is already full."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
@@ -73,7 +73,7 @@ func StartGamePlay(c *gin.Context) {
 	go helpers.BroadcastWinner(gInstance)
 
 	for {
-		if gInstance.GetCurrentActivePlayers() != gInstance.PlayersCount {
+		if gInstance.GetCurrentActivePlayersCount() != gInstance.PlayersCount {
 			continue
 		}
 		var move models.MoveMsg
