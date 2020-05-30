@@ -40,7 +40,7 @@ func JoinExistingGame(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
 		return
 	}
-	color := gInstance.AvailableColors[gInstance.GetCurrentActivePlayers()]
+	color := gInstance.AvailableColors[gInstance.GetAndIncJoinPlayers()]
 	_, pExists := gInstance.GetPlayerByUsername(username)
 	if pExists {
 		ret = gin.H{"Error": "Username `" + username + "` is already selected by someone else"}

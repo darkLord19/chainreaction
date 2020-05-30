@@ -20,6 +20,7 @@ type Instance struct {
 	ExpiresOn              time.Time `json:"-"`
 	AvailableColors        [8]string `json:"-"`
 	IsOver                 bool      `json:"-"`
+	joinedPlayers          int
 	currentActivePlayers   int
 	allPlayedOnce          bool
 	RecvMove               chan MoveMsg `json:"-"`
@@ -27,6 +28,7 @@ type Instance struct {
 	winnerMutex            sync.RWMutex //winnerMutex protects read write to Winner
 	allPlayedMutex         sync.RWMutex //allPlayedMutex protects allPlayedOnce
 	currActivePlayersMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
+	joinedPlayersMutex     sync.RWMutex
 }
 
 // Pixel represents current state of one pixel on board
@@ -45,6 +47,15 @@ func (i *Instance) Init(name string) {
 	i.AvailableColors = constants.Colors
 	i.RecvMove = make(chan MoveMsg)
 	i.UpdatedBoard = make(chan []int)
+}
+
+// GetAndIncJoinPlayers gets count of currently joined players count and increase it by one
+func (i *Instance) GetAndIncJoinPlayers() int {
+	i.joinedPlayersMutex.Lock()
+	defer i.joinedPlayersMutex.Unlock()
+	v := i.joinedPlayers
+	i.joinedPlayers++
+	return v
 }
 
 // IncCurrentActivePlayers increases current active players count safely
