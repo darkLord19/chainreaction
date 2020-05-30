@@ -21,6 +21,7 @@ func UpdatedBoardUpdates(i *models.Instance) {
 				if err != nil {
 					log.Printf("error: %v", err)
 					i.AllPlayers[x].CleanupWs()
+					i.DecCurrentActivePlayers()
 				}
 			}
 		}
@@ -37,6 +38,7 @@ func BroadcastWinner(i *models.Instance) {
 				if err != nil {
 					log.Printf("error: %v", err)
 					i.AllPlayers[x].CleanupWs()
+					i.DecCurrentActivePlayers()
 				}
 			}
 			i.IsOver = true
