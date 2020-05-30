@@ -80,9 +80,7 @@ func StartGamePlay(c *gin.Context) {
 		err := ws.ReadJSON(&move)
 		if err != nil {
 			log.Printf("error: %v", err)
-			gInstance.AllPlayers[gInstance.GetCurrentActivePlayers()-1].SetWsConnection(nil)
-			gInstance.DecCurrentActivePlayers()
-			break
+			continue
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
 			gInstance.RecvMove <- move
