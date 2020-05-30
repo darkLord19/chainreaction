@@ -1,7 +1,7 @@
 package constants
 
 // Colors available to choose from for users
-var Colors = []string{
+var Colors = [8]string{
 	"#FF1744", //RED
 	"#3D5AFE", //INDIGO
 	"#00E5FF", //CYAN

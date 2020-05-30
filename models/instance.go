@@ -9,17 +9,17 @@ import (
 
 // Instance represents a single game instance
 type Instance struct {
-	Board                  []Pixel         `json:"-"`
-	PlayersCount           int             `json:"players_count" form:"players_count"`
-	CurrentTurn            int             `json:"current_turn"`
-	AllPlayers             []Player        `json:"all_players"`
-	Winner                 *Player         `json:"-"`
-	RoomName               string          `json:"room_name"`
-	Dimension              int             `json:"dimension" form:"dimension"`
-	CreatedOn              time.Time       `json:"-"`
-	ExpiresOn              time.Time       `json:"-"`
-	AvailableColors        map[string]bool `json:"-"`
-	IsOver                 bool            `json:"-"`
+	Board                  []Pixel   `json:"-"`
+	PlayersCount           int       `json:"players_count" form:"players_count"`
+	CurrentTurn            int       `json:"current_turn"`
+	AllPlayers             []Player  `json:"all_players"`
+	Winner                 *Player   `json:"-"`
+	RoomName               string    `json:"room_name"`
+	Dimension              int       `json:"dimension" form:"dimension"`
+	CreatedOn              time.Time `json:"-"`
+	ExpiresOn              time.Time `json:"-"`
+	AvailableColors        [8]string `json:"-"`
+	IsOver                 bool      `json:"-"`
 	currentActivePlayers   int
 	allPlayedOnce          bool
 	RecvMove               chan MoveMsg `json:"-"`
@@ -42,28 +42,9 @@ func (i *Instance) Init(name string) {
 	i.CurrentTurn = 0
 	i.Board = make([]Pixel, i.Dimension*i.Dimension)
 	i.RoomName = name
-	i.AvailableColors = make(map[string]bool)
-	for _, c := range constants.Colors {
-		i.AvailableColors[c] = true
-	}
+	i.AvailableColors = constants.Colors
 	i.RecvMove = make(chan MoveMsg)
 	i.UpdatedBoard = make(chan []int)
-}
-
-// CheckIfColorSelected checks if given color is already selected by another player
-func (i *Instance) CheckIfColorSelected(color string) bool {
-	_, v := i.AvailableColors[color]
-	return !v
-}
-
-// CheckIfValidColor checks if recvd color is valid
-func (i *Instance) CheckIfValidColor(color string) bool {
-	for k := range i.AvailableColors {
-		if k == color {
-			return true
-		}
-	}
-	return false
 }
 
 // IncCurrentActivePlayers increases current active players count safely
