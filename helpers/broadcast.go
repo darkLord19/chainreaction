@@ -16,7 +16,7 @@ func UpdatedBoardUpdates(i *models.Instance) {
 			p, _ := i.GetPlayerByUsername(move.PlayerUserName)
 			for x := range i.AllPlayers {
 				msg := models.NewStateMsg{constants.StateUpBcastMsg, i.AllPlayers[i.CurrentTurn].UserName,
-					p.Color, move.PlayerUserName, val}
+					i.AllPlayers[i.CurrentTurn].Color, p.Color, move.PlayerUserName, val}
 				err := i.AllPlayers[x].WriteToWebsocket(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
