@@ -23,6 +23,7 @@ type Instance struct {
 	joinedPlayersCnt          int
 	currActivePlayersCnt      int
 	allPlayedOnce             bool
+	Defeated                  chan *Player
 	RecvMove                  chan MoveMsg `json:"-"`
 	UpdatedBoard              chan []int   `json:"-"`
 	winnerMutex               sync.RWMutex //winnerMutex protects read write to Winner
@@ -145,12 +146,15 @@ func (i *Instance) DecCellCountOfPlayer(color string, cnt int) {
 			i.AllPlayers[a].CellCount -= cnt
 			if i.AllPlayers[a].CellCount == 0 {
 				i.AllPlayers[a].Defeated = true
+				i.DecCurrentActivePlayersCount()
+				i.Defeated <- &i.AllPlayers[a]
 			}
 			break
 		}
 	}
 }
 
+// SetNewCurrentTurn sets new current turn after each move
 func (i *Instance) SetNewCurrentTurn() {
 	c := (i.CurrentTurn + 1) % i.PlayersCount
 	for i.AllPlayers[c].Defeated {

@@ -46,3 +46,22 @@ func BroadcastWinner(i *models.Instance) {
 		}
 	}
 }
+
+// BroadcastDefeated broadcasts when a player is lost in game
+func BroadcastDefeated(i *models.Instance) {
+	for {
+		if w := i.GetWinner(); w != nil {
+			return
+		}
+		player := <-i.Defeated
+		for x := range i.AllPlayers {
+			msg := models.WinnerMsg{constants.UserLost, player.UserName, player.Color}
+			err := i.AllPlayers[x].WriteToWebsocket(msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				i.AllPlayers[x].CleanupWs()
+				i.DecCurrentActivePlayersCount()
+			}
+		}
+	}
+}

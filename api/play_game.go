@@ -71,6 +71,7 @@ func StartGamePlay(c *gin.Context) {
 
 	go helpers.UpdatedBoardUpdates(gInstance)
 	go helpers.BroadcastWinner(gInstance)
+	go helpers.BroadcastDefeated(gInstance)
 
 	for gInstance.GetCurrentActivePlayersCount() != gInstance.PlayersCount {
 		continue
