@@ -72,10 +72,11 @@ func StartGamePlay(c *gin.Context) {
 	go helpers.UpdatedBoardUpdates(gInstance)
 	go helpers.BroadcastWinner(gInstance)
 
+	for gInstance.GetCurrentActivePlayersCount() != gInstance.PlayersCount {
+		continue
+	}
+
 	for {
-		if gInstance.GetCurrentActivePlayersCount() != gInstance.PlayersCount {
-			continue
-		}
 		var move models.MoveMsg
 		err := ws.ReadJSON(&move)
 		if err != nil {
@@ -84,7 +85,7 @@ func StartGamePlay(c *gin.Context) {
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
 			gInstance.RecvMove <- move
-			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
+			gInstance.SetNewCurrentTurn()
 			err = simulate.ChainReaction(gInstance, move)
 			if err != nil {
 				helpers.NotifyIndividual(player, models.ErrMsg{constants.InvalidMoveMsg, err.Error()})

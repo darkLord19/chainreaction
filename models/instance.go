@@ -20,7 +20,7 @@ type Instance struct {
 	ExpiresOn                 time.Time `json:"-"`
 	AvailableColors           [8]string `json:"-"`
 	IsOver                    bool      `json:"-"`
-	joinedPlayers             int
+	joinedPlayersCnt          int
 	currActivePlayersCnt      int
 	allPlayedOnce             bool
 	RecvMove                  chan MoveMsg `json:"-"`
@@ -28,7 +28,7 @@ type Instance struct {
 	winnerMutex               sync.RWMutex //winnerMutex protects read write to Winner
 	allPlayedMutex            sync.RWMutex //allPlayedMutex protects allPlayedOnce
 	currActivePlayersCntMutex sync.RWMutex //currActivePlayersMutex protects read write to CurrentActivePlayers
-	joinedPlayersMutex        sync.RWMutex
+	joinedPlayersCntMutex     sync.RWMutex //joinedPlayersCntMutex protects read write joinedPlayersCnt
 }
 
 // Pixel represents current state of one pixel on board
@@ -49,13 +49,18 @@ func (i *Instance) Init(name string) {
 	i.UpdatedBoard = make(chan []int)
 }
 
-// GetAndIncJoinPlayers gets count of currently joined players count and increase it by one
-func (i *Instance) GetAndIncJoinPlayers() int {
-	i.joinedPlayersMutex.Lock()
-	defer i.joinedPlayersMutex.Unlock()
-	v := i.joinedPlayers
-	i.joinedPlayers++
-	return v
+// GetJoinedPlayersCount gets count of currently joined players count and increase it by one
+func (i *Instance) GetJoinedPlayersCount() int {
+	i.joinedPlayersCntMutex.Lock()
+	defer i.joinedPlayersCntMutex.Unlock()
+	return i.joinedPlayersCnt
+}
+
+// IncJoinedPlayersCount gets count of currently joined players count and increase it by one
+func (i *Instance) IncJoinedPlayersCount() {
+	i.joinedPlayersCntMutex.Lock()
+	defer i.joinedPlayersCntMutex.Unlock()
+	i.joinedPlayersCnt++
 }
 
 // IncCurrentActivePlayers increases current active players count safely
@@ -120,20 +125,34 @@ func (i *Instance) GetIfAllPlayedOnce() bool {
 
 // IncCellCountOfPlayer accepts color and increases cell count
 // for the given player who has that color
-func (i *Instance) IncCellCountOfPlayer(color string) {
+func (i *Instance) IncCellCountOfPlayer(color string, cnt int) {
 	for a := range i.AllPlayers {
 		if i.AllPlayers[a].Color == color {
-			i.AllPlayers[a].CellCount++
+			i.AllPlayers[a].CellCount += cnt
+			break
 		}
 	}
 }
 
-// DecCellCountOfPlayer accepts color and increases cell count
-// for the given player who has that color
-func (i *Instance) DecCellCountOfPlayer(color string) {
+// DecCellCountOfPlayer accepts color and decreases cell count
+// for the given player who has that color and
+// sets defeated value to true if count becomes 0
+func (i *Instance) DecCellCountOfPlayer(color string, cnt int) {
 	for a := range i.AllPlayers {
 		if i.AllPlayers[a].Color == color {
-			i.AllPlayers[a].CellCount--
+			i.AllPlayers[a].CellCount -= cnt
+			if i.AllPlayers[a].CellCount == 0 {
+				i.AllPlayers[a].Defeated = true
+			}
+			break
 		}
 	}
+}
+
+func (i *Instance) SetNewCurrentTurn() {
+	c := (i.CurrentTurn + 1) % i.PlayersCount
+	for i.AllPlayers[c].Defeated {
+		c = (i.CurrentTurn + 1) % i.PlayersCount
+	}
+	i.CurrentTurn = c
 }

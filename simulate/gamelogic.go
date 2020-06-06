@@ -18,14 +18,15 @@ func updateBoard(gameInstance *models.Instance, x int, y int, color string) []in
 	for !q.IsEmpty() {
 		x, y = q.Dequeue()
 
-		if c := (*board)[dim*x+y].Color; c != "" && c != color {
-			gameInstance.DecCellCountOfPlayer(c)
+		prevColor := (*board)[dim*x+y].Color
+		prevCnt := (*board)[dim*x+y].DotCount
+
+		if prevColor != "" && prevColor != color {
+			gameInstance.DecCellCountOfPlayer(prevColor, prevCnt)
 		}
 
-		(*board)[dim*x+y].DotCount++
 		(*board)[dim*x+y].Color = color
-
-		gameInstance.IncCellCountOfPlayer(color)
+		(*board)[dim*x+y].DotCount++
 
 		cnt := (*board)[dim*x+y].DotCount
 
@@ -35,6 +36,13 @@ func updateBoard(gameInstance *models.Instance, x int, y int, color string) []in
 			states = append(states, []int{x, y, 0}...)
 			chain(board, x, y, color, q, dim)
 			states = append(states, -1)
+		} else {
+			if prevColor == color {
+				gameInstance.IncCellCountOfPlayer(color, 1)
+			} else {
+				gameInstance.IncCellCountOfPlayer(color, prevCnt)
+			}
+
 		}
 
 	}
