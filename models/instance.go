@@ -110,9 +110,11 @@ func (i *Instance) GetWinner() *Player {
 }
 
 // SetIfAllPlayedOnce sets if everyone played once
-func (i *Instance) SetIfAllPlayedOnce(val bool) {
+func (i *Instance) SetIfAllPlayedOnce(uname string) {
 	i.allPlayedMutex.Lock()
-	i.allPlayedOnce = val
+	if i.AllPlayers[i.PlayersCount-1].UserName == uname {
+		i.allPlayedOnce = true
+	}
 	i.allPlayedMutex.Unlock()
 }
 

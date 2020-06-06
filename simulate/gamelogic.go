@@ -3,7 +3,6 @@ package simulate
 import (
 	"fmt"
 
-	"github.com/chainreaction/helpers"
 	"github.com/chainreaction/models"
 	"github.com/chainreaction/utils"
 )
@@ -81,7 +80,7 @@ func chain(board *[]models.Pixel, x int, y int, color string, q *utils.Queue, di
 
 func checkIfWon(gI *models.Instance, color string) bool {
 	won := true
-	if !helpers.CheckIfEveryonePlayed(gI) {
+	if !gI.GetIfAllPlayedOnce() {
 		return false
 	}
 	for i := 0; i < gI.Dimension; i++ {
@@ -120,7 +119,7 @@ func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
 
 	won := checkIfWon(gameInstance, player.Color)
 
-	helpers.SetIfAllPlayedOnce(gameInstance, player.UserName)
+	gameInstance.SetIfAllPlayedOnce(player.UserName)
 
 	gameInstance.UpdatedBoard <- states
 
