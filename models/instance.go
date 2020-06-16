@@ -23,7 +23,7 @@ type Instance struct {
 	joinedPlayersCnt          int
 	currActivePlayersCnt      int
 	allPlayedOnce             bool
-	Defeated                  chan *Player
+	Defeated                  chan *Player `json:"-"`
 	RecvMove                  chan MoveMsg `json:"-"`
 	UpdatedBoard              chan []int   `json:"-"`
 	winnerMutex               sync.RWMutex //winnerMutex protects read write to Winner
