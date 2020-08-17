@@ -22,7 +22,6 @@ func setupRouter() *gin.Engine {
 	// i.e no support for /login and /:userid as they conflict
 	router.GET("/games/:name/join", api.JoinExistingGame)
 	router.GET("/games/:name/play", api.StartGamePlay)
-	router.GET("/games/:name/colors", api.GetAvailableColors)
 
 	return router
 }

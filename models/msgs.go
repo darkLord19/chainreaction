@@ -10,11 +10,12 @@ type MoveMsg struct {
 
 // NewStateMsg struct is used to represent board update for websocket broadcast
 type NewStateMsg struct {
-	MsgType     int    `json:"msg_type"`
-	NewCurrTurn string `json:"new_currturn"`
-	Color       string `json:"color"`
-	PlayedBy    string `json:"played_by"`
-	States      []int  `json:"states"`
+	MsgType      int    `json:"msg_type"`
+	NewCurrTurn  string `json:"new_currturn"`
+	NewCurrColor string `json:"new_curr_color"`
+	Color        string `json:"color"`
+	PlayedBy     string `json:"played_by"`
+	States       []int  `json:"states"`
 }
 
 // WinnerMsg struct is used to send winner notification to users

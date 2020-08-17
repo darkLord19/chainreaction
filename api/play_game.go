@@ -35,7 +35,7 @@ func StartGamePlay(c *gin.Context) {
 
 	gInstance, exists := datastore.GetGameInstance(roomname)
 
-	if gInstance.GetCurrentActivePlayers() == gInstance.PlayersCount {
+	if gInstance.GetCurrentActivePlayersCount() == gInstance.PlayersCount {
 		ret = gin.H{"Error": "Game is already full."}
 		log.Println(ret)
 		c.AbortWithStatusJSON(http.StatusBadRequest, ret)
@@ -71,22 +71,22 @@ func StartGamePlay(c *gin.Context) {
 
 	go helpers.UpdatedBoardUpdates(gInstance)
 	go helpers.BroadcastWinner(gInstance)
+	go helpers.BroadcastDefeated(gInstance)
+
+	for gInstance.GetCurrentActivePlayersCount() != gInstance.PlayersCount {
+		continue
+	}
 
 	for {
-		if gInstance.GetCurrentActivePlayers() != gInstance.PlayersCount {
-			continue
-		}
 		var move models.MoveMsg
 		err := ws.ReadJSON(&move)
 		if err != nil {
 			log.Printf("error: %v", err)
-			gInstance.AllPlayers[gInstance.GetCurrentActivePlayers()-1].SetWsConnection(nil)
-			gInstance.DecCurrentActivePlayers()
-			break
+			continue
 		}
 		if move.PlayerUserName == gInstance.AllPlayers[gInstance.CurrentTurn].UserName {
 			gInstance.RecvMove <- move
-			gInstance.CurrentTurn = (gInstance.CurrentTurn + 1) % gInstance.PlayersCount
+			gInstance.SetNewCurrentTurn()
 			err = simulate.ChainReaction(gInstance, move)
 			if err != nil {
 				helpers.NotifyIndividual(player, models.ErrMsg{constants.InvalidMoveMsg, err.Error()})

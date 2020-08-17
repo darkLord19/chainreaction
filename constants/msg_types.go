@@ -11,4 +11,6 @@ const (
 	UserWonMsg
 	// InvalidMoveMsg is msg type of invalid move to be unicasted to player who originated move
 	InvalidMoveMsg
+	// UserLost is msg type for the times when a single player is lost in game after a turn
+	UserLost
 )

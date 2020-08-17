@@ -3,37 +3,45 @@ package simulate
 import (
 	"fmt"
 
-	"github.com/chainreaction/helpers"
 	"github.com/chainreaction/models"
 	"github.com/chainreaction/utils"
 )
 
-func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []int {
+func updateBoard(gameInstance *models.Instance, x int, y int, color string) []int {
 	var states []int
+	dim := gameInstance.Dimension
+	board := &gameInstance.Board
 	q := utils.NewQueue()
 	q.Enqueue(utils.Pair{x, y})
-
-	(*board)[dim*x+y].DotCount++
-	(*board)[dim*x+y].Color = color
-
-	states = append(states, []int{x, y, (*board)[dim*x+y].DotCount}...)
 
 	for !q.IsEmpty() {
 		x, y = q.Dequeue()
 
+		prevColor := (*board)[dim*x+y].Color
+		prevCnt := (*board)[dim*x+y].DotCount
+
+		if prevColor != "" && prevColor != color {
+			gameInstance.DecCellCountOfPlayer(prevColor, prevCnt)
+		}
+
+		(*board)[dim*x+y].Color = color
+		(*board)[dim*x+y].DotCount++
+
 		cnt := (*board)[dim*x+y].DotCount
 
-		switch cnt {
-		case 2:
-			if utils.IsCorner(dim, dim, x, y) {
-				updatePixelState(board, x, y, color, q, &states, dim)
+		states = append(states, []int{x, y, cnt}...)
+
+		if isChaining(cnt, dim, x, y) {
+			states = append(states, []int{x, y, 0}...)
+			chain(board, x, y, color, q, dim)
+			states = append(states, -1)
+		} else {
+			if prevColor == color {
+				gameInstance.IncCellCountOfPlayer(color, 1)
+			} else {
+				gameInstance.IncCellCountOfPlayer(color, prevCnt)
 			}
-		case 3:
-			if utils.IsOnEdge(dim, dim, x, y) {
-				updatePixelState(board, x, y, color, q, &states, dim)
-			}
-		case 4:
-			updatePixelState(board, x, y, color, q, &states, dim)
+
 		}
 
 	}
@@ -41,54 +49,38 @@ func updateBoard(board *[]models.Pixel, x int, y int, color string, dim int) []i
 	return states
 }
 
-func updatePixelState(board *[]models.Pixel, x int, y int, color string, q *utils.Queue, t *[]int, dim int) {
+func isChaining(cnt int, dim int, x int, y int) bool {
+	if utils.IsCorner(dim, dim, x, y) && cnt == 2 {
+		return true
+	} else if utils.IsOnEdge(dim, dim, x, y) && cnt == 3 {
+		return true
+	} else if cnt == 4 {
+		return true
+	}
+	return false
+}
+
+func chain(board *[]models.Pixel, x int, y int, color string, q *utils.Queue, dim int) {
 	(*board)[dim*x+y].DotCount = 0
 	(*board)[dim*x+y].Color = ""
 
-	*t = append(*t, []int{x, y, 0}...)
-
-	var p utils.Pair
-
 	if x > 0 {
-		(*board)[(dim*(x-1))+y].DotCount++
-		(*board)[(dim*(x-1))+y].Color = color
-		p = utils.Pair{x - 1, y}
-		q.Enqueue(p)
-		tmp := []int{x - 1, y, (*board)[(dim*(x-1))+y].DotCount}
-		*t = append(*t, tmp...)
+		q.Enqueue(utils.Pair{x - 1, y})
 	}
 	if y > 0 {
-		(*board)[(dim*x)+(y-1)].DotCount++
-		(*board)[(dim*x)+(y-1)].Color = color
-		p = utils.Pair{x, y - 1}
-		q.Enqueue(p)
-		tmp := []int{x, y - 1, (*board)[(dim*x)+(y-1)].DotCount}
-		*t = append(*t, tmp...)
+		q.Enqueue(utils.Pair{x, y - 1})
 	}
 	if x < dim-1 {
-		(*board)[(dim*(x+1))+y].DotCount++
-		(*board)[(dim*(x+1))+y].Color = color
-		p = utils.Pair{x + 1, y}
-		q.Enqueue(p)
-		tmp := []int{x + 1, y, (*board)[(dim*(x+1))+y].DotCount}
-		*t = append(*t, tmp...)
+		q.Enqueue(utils.Pair{x + 1, y})
 	}
 	if y < dim-1 {
-		(*board)[(dim*x)+(y+1)].DotCount++
-		(*board)[(dim*x)+(y+1)].Color = color
-		p = utils.Pair{x, y + 1}
-		q.Enqueue(p)
-		tmp := []int{x, y + 1, (*board)[(dim*x)+(y+1)].DotCount}
-		*t = append(*t, tmp...)
+		q.Enqueue(utils.Pair{x, y + 1})
 	}
-
-	// seperator to know which states updated levelwise
-	*t = append(*t, -1)
 }
 
 func checkIfWon(gI *models.Instance, color string) bool {
 	won := true
-	if !helpers.CheckIfEveryonePlayed(gI) {
+	if !gI.GetIfAllPlayedOnce() {
 		return false
 	}
 	for i := 0; i < gI.Dimension; i++ {
@@ -123,11 +115,11 @@ func ChainReaction(gameInstance *models.Instance, move models.MoveMsg) error {
 		return fmt.Errorf("Invalid move. board[%v][%v] already contains color: %v", x, y, board[gameInstance.Dimension*x+y].Color)
 	}
 
-	states := updateBoard(&board, x, y, player.Color, gameInstance.Dimension)
+	states := updateBoard(gameInstance, x, y, player.Color)
 
 	won := checkIfWon(gameInstance, player.Color)
 
-	helpers.SetIfAllPlayedOnce(gameInstance, player.UserName)
+	gameInstance.SetIfAllPlayedOnce(player.UserName)
 
 	gameInstance.UpdatedBoard <- states
 
